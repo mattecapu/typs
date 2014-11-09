@@ -1,14 +1,14 @@
 {
-  "name": "types.js",
+  "name": "typs",
   "version": "0.0.1",
   "description": "An handy library for type validation in Javascript",
-  "main": "types.js",
+  "main": "typs.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mattecapu/types.js.git"
+    "url": "https://github.com/mattecapu/typs.git"
   },
   "keywords": [
     "types",
@@ -19,7 +19,7 @@
   "author": "Matteo Capucci <mattecapu@live.it>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mattecapu/types.js/issues"
+    "url": "https://github.com/mattecapu/typs/issues"
   },
-  "homepage": "https://github.com/mattecapu/types.js"
+  "homepage": "https://github.com/mattecapu/typs"
 }
