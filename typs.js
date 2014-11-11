@@ -53,7 +53,20 @@ function Typs(args, constraints) {
 			return (typs(obj).string().check()
 					|| typeof obj === 'number' || obj instanceof Number)
 					&& !isNaN(parseFloat(obj))
-					&& isFinite(obj.toString().replace(sgn_regex, ''))
+					&& (isFinite(obj.toString().replace(sgn_regex, '')) || obj*obj === Infinity)
+		});
+	};
+	
+	// checks for finiteness
+	this.finite = function() {
+		return add((obj) => {
+			return typs(obj).number().check() && isFinite(obj.toString().replace(sgn_regex, ''));
+		});
+	};
+	// checks for infiniteness
+	this.infinite = function() {
+		return add((obj) => {
+			return typs(obj).number().check() && !isFinite(obj.toString().replace(sgn_regex, ''));
 		});
 	};
 
@@ -72,7 +85,7 @@ function Typs(args, constraints) {
 	};
 	this.negative = function() {
 		return add((obj) => {
-			return !typs(obj).positive().check();
+			return typs(obj).number().check() && parseFloat(obj) < 0;
 		});
 	};
 
