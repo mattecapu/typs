@@ -4,22 +4,19 @@
 	Nerd it on GitHub: https://github.com/mattecapu/types.js
 */
 
+
 // a type signature object
-function Typs (args) {
-	
+function Typs(args, constraints) {
+
 	if(args.length === 0) args = [undefined];
-	
-	var constraints = [];
-	var add = (function(constraint) {
-		constraints.push(constraint);
-		return this;
-	}).bind(this);
+
+	var add = function(constraint) {
+		return new Typs(args, constraints.concat(constraint));
+	};
 
 	// checks if obj satisfies all the constraints of this type signature
 	this.checkOn = function(obj) {
-		//console.log('i\'ve got', constraints.length, 'problems');
 		return (constraints.length === 0) || !constraints.some((constraint, i) => {
-			//if(!constraint(obj)) console.log('constraint',i,'failed');
 			return !constraint(obj);
 		});
 	};
@@ -29,7 +26,7 @@ function Typs (args) {
 			return !this.checkOn(obj);
 		}).bind(this));
 	};
-
+	
 	// check if obj statisfies one or more type signatures
 	this.matchAny = function(types) {
 		return add((obj) => {
@@ -141,10 +138,10 @@ function Typs (args) {
 			});
 		});
 	};
-	
+
 	// checks if obj is an instance of the given class
 	this.instanceOf = function(class_func) {
-		if(!typs(class_func).func().check()) throw new Error('typs().instanceOf() wants a function class as its first parameter');
+		if(!typs(class_func).func().check()) throw new Error('typs().instanceOf() expects a function class as its first parameter');
 		return add((obj) => {
 			return obj instanceof class_func;
 		});
@@ -153,8 +150,8 @@ function Typs (args) {
 	// checks if type matches obj
 	this.match = function(type) {
 		if(!typs(type).object().check() && !(type instanceof Typs)) {
-			throw new Error('typs().match() wants a type signature object as its first parameter');
-		};
+			throw new Error('typs().match() expects a type signature object as its first parameter');
+		}
 		if(type instanceof Typs) {
 			return add((obj) => {
 				return type.checkOn(obj);
@@ -200,10 +197,17 @@ function Typs (args) {
 		});
 	};
 
+	// checks if obj satisfies the constraints defined in the function constraint(obj);
+	this.satisfies = function(constraint) {
+		if(!typs(constraint).func().check()) throw new Error('typs().satisfy() expects a function as its first argument');
+		return add(constraint);
+	};
+
 };
 
+// interface, masks the immutability 
 var typs = function(/* variadic arguments */) {
-	return new Typs([].slice.call(arguments));
+	return new Typs([].slice.call(arguments), []);
 };
 
 module.exports = typs;
