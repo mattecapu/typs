@@ -6,12 +6,23 @@ module.exports = function(grunt) {
 				harmony: true
 			},
 			all: {
-				files: {'typs-transpiled.js' : 'typs.js'},
+				files: {
+					'typs-transpiled.js' : 'typs.js',
+					'test-transpiled.js' : 'test.js'
+				}
+			}
+		},
+		watch: {
+			all: {
+				files: ['typs.js', 'test.js'],
+				tasks: ['react']
 			}
 		}
 	});
 
 	grunt.loadNpmTasks('grunt-react');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	grunt.registerTask('default', ['react']);
+	grunt.registerTask('watch', ['watch']);
 };
