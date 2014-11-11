@@ -43,16 +43,15 @@ assert(false === typs('42a').number().check());
 assert(false === typs('fortytwo').number().check());
 assert(false === typs([42]).number().check());
 assert(false === typs(nan).number().check());
-assert(false === typs(infinity).number().check());
 
 
 // typs().integer()
 assert(true === typs(42).integer().check());
 assert(true === typs(-42).integer().check());
 assert(true === typs(42.0).integer().check());
+assert(true === typs(1e-17 + 2).integer().check()); 	// 64bit numbers can't represent more than 16 digits
 
 assert(false === typs(2.7182182).integer().check());
-//assert(false === typs(2.00000000000000000009).integer().check());
 
 
 // typs().positive()
@@ -91,3 +90,5 @@ assert(true === typs('fortytwo').string().check());
 assert(true === typs(new String()).string().check());
 
 assert(false === typs(['a', 'b', 'c']).string().check());
+
+console.log('so far, so good')
