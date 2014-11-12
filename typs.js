@@ -118,6 +118,14 @@ function Typs(args, constraints) {
 			return typs(obj).len({min: 1}).check();
 		});
 	};
+	
+	// checks if obj match the provided regex
+	this.regex = function(regex) {
+		if(!typs(regex).instanceOf(RegExp)) throw new Error('typs().regex() expects a RegExp object as its first parameter');
+		return add((obj) => {
+			return regex.test(obj);
+		});
+	};
 
 	// arrays
 	this.array = function() {
@@ -185,6 +193,7 @@ function Typs(args, constraints) {
 			});
 		});
 	};
+	// shortcuts for match().check()
 	this.is = function(type) {
 		return add((obj) => {
 			return typs(obj).match(type).check();
@@ -200,6 +209,11 @@ function Typs(args, constraints) {
 	this.equals = function(value) {
 		return add((obj) => {
 			return value === obj;
+		});
+	};
+	this.notEquals = function(value) {
+		return add((obj) => {
+			return value !== obj;
 		});
 	};
 
