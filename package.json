@@ -1,10 +1,10 @@
 {
   "name": "typs",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "An handy library for type validation in Javascript",
   "main": "typs-transpiled.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-transpiled.js"
   },
   "repository": {
     "type": "git",
