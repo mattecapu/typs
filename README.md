@@ -6,7 +6,9 @@ An handy library for type validation in Javascript
 What can I use it for?
 ---
 * **Param checking**
+
 Write a sound REST API or provide strong code constraints validating your parameters
+
 ```js
 app.get('/api/v1/users/:user_id', function(req) {
 	var user_id = req.params.user_id;
@@ -14,8 +16,11 @@ app.get('/api/v1/users/:user_id', function(req) {
 	// ...
 });
 ```
+
 * **Input validation**
+
 Let typs handle your validation logic in an easy and semantic way
+
 ```js
 var usernameType = typs().string().notEmpty().len({min: 5, max: 15});
 var uniqueUsernameType = usernameType.satisifies(function(username) {
