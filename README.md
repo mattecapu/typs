@@ -3,65 +3,49 @@ typs
 
 An handy library for type validation in Javascript
 
-Usage
+What can I use it for?
 ---
-
-The library is still widely open to changes, so feel free to propose new features or open an issue.
-
+* **Param checking**
+Write a sound REST API or provide strong code constraints validating your parameters
 ```js
-var typs = require('typs');
-
-var foo = 5,
-	bar = 'foobar',
-	qux = function(q, u, x) {
-		return q*u*x;
-	},
-	hello = {
-		hello: '42',
-		world: 3.1415
-	};
-
-// validate values directly
-typs(foo).number().check(); 				// true
-typs(bar).string().check(); 				// true
-typs(qux).object().check(); 				// false
-typs(hello).object().notNull().check(); 	// true
-
-// validate multiple values at once
-typs(4, 5, 6).number().check(); // true
-
-// store types signature and use them later
-var notNullType = typs().notNull();
-var idType = notNullType.integer().positive().notZero();
-var nameType = notNullType.string().len({min: 5, max: 20});
-
-function create_minion(id, name) {
-	if(typs(id).isnt(idType)) throw new Error('not a valid ID');
-	if(typs(name).isnt(nameType)) throw new Error('not a valid name');
+app.get('/api/v1/users/:user_id', function(req) {
+	var user_id = req.params.user_id;
+	if(typs(user_id).integer().positive().notZero()) throw new Error('user_id is not a valid identifier');
 	// ...
-};
-
-create_minion(2, 'kevin');					// ok
-create_minion(0, 'stuart');					// 'not a valid ID'
-create_minion(15, 'dave');					// 'not a valid name'
-
-// create complex types easily
-var minionType = {
-	id: idType,
-	name: nameType,
-	bananas: typs().notNull().integer().positive()
-};
-var stuartType = {
-	id: minionType.id,
-	name: 'stuart',
-	bananas: minionType.bananas
-};
-
-function get_minion(minion) {
-	if(typs(minion).isnt(minionType)) throw new Error('not a valid minion object');
-	// ...
-};
-function is_stuart(minion) {
-	return typs(minion).is(stuartType);
-};
+});
 ```
+* **Input validation**
+Let typs handle your validation logic in an easy and semantic way
+```js
+var usernameType = typs().string().notEmpty().len({min: 5, max: 15});
+var uniqueUsernameType = usernameType.satisifies(function(username) {
+	// yes, typs supports promises!
+	return query('SELECT * FROM users WHERE username = ?', username).then(function(rows) {
+		return rows.length < 1;
+	});
+});
+var passwordType = typs().string().notEmpty().len({min: 8, max: 25});
+var emailType = typs().string().notEmpty().regex(/* ...a long mail regex... */);
+
+function add_user(username, password, email) {
+	if(typs(username).isnt(usernameType)) {
+		throw new Error('the username you provided is not a valid username')
+	}
+	if(typs(password).isnt(passwordType)) {
+		throw new Error('the password you provided is not valid');
+	}
+	if(typs(email).isnt(emailType)) {
+		throw new Error('the e-mail you provided is not valid');
+	}
+	
+	typs(username).isnt(uniqueUsernameType).then((pass) => {
+		if (!pass) throw new Error('this username already exists, please pick another');
+		// ...
+	});
+}
+```
+
+Finally
+---
+The library is still widely open to changes, so feel free to propose new features or open an issue.
+Read the [documentation](/DOCS.md) for more information.
