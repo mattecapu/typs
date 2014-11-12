@@ -53,4 +53,4 @@ function add_user(username, password, email) {
 Finally
 ---
 The library is still widely open to changes, so feel free to propose new features or open an issue.
-Read the [documentation](/DOCS.md) for more information.
+Read the [documentation](https://github.com/mattecapu/typs/blob/master/DOCS.md) for more information.
