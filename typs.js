@@ -4,11 +4,19 @@
 	Nerd it on GitHub: https://github.com/mattecapu/types.js
 */
 
+var Promise = require('bluebird');
+
+// interface, masks the immutability
+var typs = function(/* variadic arguments */) {
+	return new Typs([].slice.call(arguments), []);
+};
+
+module.exports = typs;
 
 // a type signature object
 function Typs(args, constraints) {
 
-	if(args.length === 0) args = [undefined];
+	if (args.length === 0) args = [undefined];
 
 	var add = function(constraint) {
 		return new Typs(args, constraints.concat(constraint));
@@ -16,18 +24,49 @@ function Typs(args, constraints) {
 
 	// checks if obj satisfies all the constraints of this type signature
 	this.checkOn = function(obj) {
-		return (constraints.length === 0) || !constraints.some((constraint, i) => {
-			return !constraint(obj);
+		if (constraints.length === 0) return true;
+
+		var results = [];
+		var async = false;
+		// we use some to shortcut on falsy values
+		if (constraints.some((constraint, i) => {
+			var result = constraint(obj);
+			results.push(result);
+
+			if (result instanceof Promise) {
+				async = true;
+				return !true;
+			}
+
+			return !result;
+
+		})) return false;
+
+		if (!async) return true;
+
+		// filter out already-truthy values
+		return Promise.all(results.filter((result) => {
+			return result instanceof Promise;
+		})).then((results) => {
+			return !results.some((x) => {return !x});
+		}).catch((error) => {
+			throw error;
 		});
 	};
-	// checks if the objects passed to type() statisfy this type signature
+	// checks if the objects passed to typs() satisfy this type signature
 	this.check = function() {
-		return !args.some(((obj) => {
-			return !this.checkOn(obj);
-		}).bind(this));
+		var current = this;
+		// clever way to reuse the code above: we create a new object
+		// with constraints based on args instead of the obj param
+		// passed to them
+		return new Typs([], args.map((arg) => {
+			return (/* obj */) => {
+				return current.checkOn(arg);
+			};
+		})).checkOn(null);
 	};
-	
-	// check if obj statisfies one or more type signatures
+
+	// checks if obj satisfies one or more type signatures
 	this.matchAny = function(types) {
 		return add((obj) => {
 			return !types.some((t) => { return typs(obj).isnt(t) });
@@ -39,7 +78,7 @@ function Typs(args, constraints) {
 		}).check();
 	};
 
-	// check if obj is null, undefined or NaN
+	// checks if obj is null, undefined or NaN
 	this.notNull = function() {
 		return add((obj) => {
 			return obj === false || obj === 0 || obj === '' || !!obj;
@@ -56,7 +95,7 @@ function Typs(args, constraints) {
 					&& (isFinite(obj.toString().replace(sgn_regex, '')) || obj*obj === Infinity)
 		});
 	};
-	
+
 	// checks for finiteness
 	this.finite = function() {
 		return add((obj) => {
@@ -107,9 +146,9 @@ function Typs(args, constraints) {
 	this.len = function({min, max, exact}) {
 		var param_type = typs().notNull().integer().positive();
 		return add((obj) => {
-			return (param_type.checkOn(min) ? obj.length >= min : true)
-					&& (param_type.checkOn(max) ? obj.length <= max : true)
-					&& (param_type.checkOn(exact) ? obj.length === exact : true)
+			return (typs(min).is(param_type) ? obj.length >= min : true)
+					&& (typs(max).is(param_type) ? obj.length <= max : true)
+					&& (typs(exact).is(param_type) ? obj.length === exact : true)
 		});
 	};
 	// checks string not-emptiness
@@ -118,7 +157,7 @@ function Typs(args, constraints) {
 			return typs(obj).len({min: 1}).check();
 		});
 	};
-	
+
 	// checks if obj match the provided regex
 	this.regex = function(regex) {
 		if(!typs(regex).instanceOf(RegExp)) throw new Error('typs().regex() expects a RegExp object as its first parameter');
@@ -146,7 +185,7 @@ function Typs(args, constraints) {
 				typs().object(),
 				typs().array(),
 				typs().string()
-			]);
+			]).check();
 		});
 	};
 
@@ -226,15 +265,8 @@ function Typs(args, constraints) {
 
 	// checks if obj satisfies the constraints defined in the function constraint(obj);
 	this.satisfies = function(constraint) {
-		if(!typs(constraint).func().check()) throw new Error('typs().satisfy() expects a function as its first argument');
+		if(!typs(constraint).func().check()) throw new Error('typs().satisfies() expects a function as its first argument');
 		return add(constraint);
 	};
 
 };
-
-// interface, masks the immutability 
-var typs = function(/* variadic arguments */) {
-	return new Typs([].slice.call(arguments), []);
-};
-
-module.exports = typs;

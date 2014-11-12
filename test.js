@@ -4,6 +4,7 @@
 */
 
 var assert = require('assert');
+var Promise = require('bluebird');
 
 var typs = require('./typs-transpiled.js');
 
@@ -14,6 +15,24 @@ var nan = parseFloat(''),
 assert(true === typs().check());
 assert(true === typs().checkOn());
 assert(true === typs().is(typs()));
+
+
+// promises support check
+typs('shouldn\'t fail').satisfies(function(obj) {
+	return Promise.resolve(true);
+}).check().then((res) => {
+	assert(true === res);
+}).catch((error) => {
+	//console.error('error', error);
+	assert(false);
+}).done();
+typs('should fail').satisfies(function(obj) {
+	return Promise.reject(obj);
+}).check().then((res) => {
+	assert(false);
+}).catch((error) => {
+	assert('should fail' === error);
+}).done();
 
 
 // typs().notNull()
