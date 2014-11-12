@@ -24,5 +24,4 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	grunt.registerTask('default', ['react']);
-	grunt.registerTask('watch', ['watch']);
 };
