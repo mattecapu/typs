@@ -12,7 +12,9 @@ Write a sound REST API or provide strong code constraints validating your parame
 ```js
 app.get('/api/v1/users/:user_id', function(req) {
 	var user_id = req.params.user_id;
-	if(typs(user_id).integer().positive().notZero()) throw new Error('user_id is not a valid identifier');
+	if(typs(user_id).integer().positive().notZero()) {
+		throw new Error('user_id is not a valid identifier');
+	}
 	// ...
 });
 ```
