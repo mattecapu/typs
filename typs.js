@@ -6,6 +6,9 @@
 
 var Promise = require('bluebird');
 
+// almost bullet-proof compare function
+var deepCompare = require('./deepCompare.js');
+
 // interface, masks the immutability
 var typs = function(/* variadic arguments */) {
 	return new Typs([].slice.call(arguments), []);
@@ -66,18 +69,6 @@ function Typs(args, constraints) {
 		})).checkOn(null);
 	};
 
-	// checks if obj satisfies one or more type signatures
-	this.matchAny = function(types) {
-		return add((obj) => {
-			return !types.some((t) => { return typs(obj).isnt(t) });
-		});
-	};
-	this.isAny = function(types) {
-		return add((obj) => {
-			return typs(obj).matchAny(types).check();
-		}).check();
-	};
-
 	// checks if obj is null, undefined or NaN
 	this.notNull = function() {
 		return add((obj) => {
@@ -135,6 +126,54 @@ function Typs(args, constraints) {
 		});
 	};
 
+	// checks if obj is greater than num
+	this.greater = function(num) {
+		if (!typs(num).number().check()) throw new Error('typs().greater() expects a number as its first parameter');
+		return add((obj) => {
+			return typs(obj).number().check() && parseFloat(obj) > parseFloat(num);
+		});
+	};
+
+	// checks if obj is lesser than num
+	this.lesser = function(num) {
+		if (!typs(num).number().check()) throw new Error('typs().greater() expects a number as its first parameter');
+		return add((obj) => {
+			return typs(obj).number().check() && parseFloat(obj) < parseFloat(num);
+		});
+	};
+
+	// checks if obj is between min and max, using includeStart and includeEnd to specify if include the bounds
+	this.between = function({min, max, includeStart, includeEnd}) {
+
+		if (includeStart === undefined) includeStart = false;
+		if (includeEnd === undefined) includeEnd = false;
+
+		if (!typs(min, max).notNull().number().check()) throw new Error('typs().between() expects numeric bounds')
+		if (!typs(includeStart, includeEnd).bool().check()) throw new Error('typs().between() expects includeStart and includeEnd to be booleans')
+
+		min = parseFloat(min);
+		max = parseFloat(max);
+
+		if (min > max) throw new Error('typs().between() expects ordered bounds');
+
+		return add((obj) => {
+			if(!typs(obj).number().check()) return false;
+
+			var num = parseFloat(obj);
+
+			return (min < num && num < max)
+					|| (includeStart && min === num)
+					|| (includeEnd && max === num);
+		});
+	};
+
+	// checks if obj is a boolean
+	this.bool = function() {
+		return add((obj) => {
+			return typeof obj === 'boolean' || obj instanceof Boolean;
+		});
+	};
+
 	// strings
 	this.string = function() {
 		return add((obj) => {
@@ -142,11 +181,29 @@ function Typs(args, constraints) {
 		});
 	};
 
+	this.hasLength = function() {
+		return add((obj) => {
+			return typs(obj).string().check() || typs(obj).array().check() || typs(obj).object().hasKeys(['length']).check();
+		});
+	};
+
 	// checks if obj.length respects the given constraints (also good for arrays)
 	this.len = function({min, max, exact}) {
 		var param_type = typs().notNull().integer().positive();
+
+		if (typs(min).isnt(param_type) && typs(max).isnt(param_type) && typs(exact).isnt(param_type)) {
+			throw new Error('typs().len() expects at least one parameter to be a positive integer');
+		}
+
+		min = parseInt(min);
+		max = parseInt(max);
+		exact = parseInt(exact);
+
+		if (min > max) throw new Error('typs().between() expects ordered bounds');
+
 		return add((obj) => {
-			return (typs(min).is(param_type) ? obj.length >= min : true)
+			return typs(obj).hasLength().check()
+					&& (typs(min).is(param_type) ? obj.length >= min : true)
 					&& (typs(max).is(param_type) ? obj.length <= max : true)
 					&& (typs(exact).is(param_type) ? obj.length === exact : true)
 		});
@@ -162,7 +219,7 @@ function Typs(args, constraints) {
 	this.regex = function(regex) {
 		if(!typs(regex).instanceOf(RegExp)) throw new Error('typs().regex() expects a RegExp object as its first parameter');
 		return add((obj) => {
-			return regex.test(obj);
+			return typs(obj).string().check() && regex.test(obj);
 		});
 	};
 
@@ -174,14 +231,14 @@ function Typs(args, constraints) {
 	// objects
 	this.object = function() {
 		return add((obj) => {
-			return typeof obj === 'object'
+			return !typs(obj).array().check() && typeof obj === 'object'
 		});
 	};
 
 	// returns true if accessing obj[<key>] doesn't raise an exception
 	this.keyable = function() {
 		return add((obj) => {
-			return typs(obj).satisfiesAny([
+			return typs(obj).matchAny([
 				typs().object(),
 				typs().array(),
 				typs().string()
@@ -191,11 +248,13 @@ function Typs(args, constraints) {
 
 	// checks if obj has all keys defined
 	this.hasKeys = function(keys) {
+		if(!typs(keys).array().check()) throw new Error('typs().keys() expects an array as its first parameter');
 		return add((obj) => {
 			if(!typs(obj).keyable().check()) return false;
-			return !keys.some((key) => {
-				return !typs(obj[key]).notNull().check()
-			});
+
+			if(keys.length === 0) return true;
+			if(keys.length === 1) return obj[keys[0]] !== undefined;
+			if(typs(obj).hasKeys([keys.pop()]).check()) return typs(obj).hasKeys(keys).check();
 		});
 	};
 
@@ -243,16 +302,27 @@ function Typs(args, constraints) {
 			return !typs(obj).is(type);
 		}).check();
 	};
+	// checks if obj satisfies one or more type signatures
+	this.matchAny = function(types) {
+		return add((obj) => {
+			return types.some((t) => { return typs(obj).is(t) });
+		});
+	};
+	this.isAny = function(types) {
+		return add((obj) => {
+			return typs(obj).matchAny(types).check();
+		}).check();
+	};
 
 	// checks if value equals to obj
 	this.equals = function(value) {
 		return add((obj) => {
-			return value === obj;
+			return deepCompare(value, obj);
 		});
 	};
 	this.notEquals = function(value) {
 		return add((obj) => {
-			return value !== obj;
+			return !typs(obj).equals(value).check();
 		});
 	};
 
