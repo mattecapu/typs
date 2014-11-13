@@ -1,5 +1,5 @@
 # typs
----
+
 An handy library for type validation in Javascript
 
 Just
@@ -11,7 +11,7 @@ npm install typs --save -D
 it.
 
 ## What can I use it for?
----
+
 ### Param checking
 
 Write a sound REST API or provide strong code constraints validating your parameters
@@ -59,11 +59,11 @@ function add_user(username, password, email) {
 }
 ```
 
-Finally
----
+## Finally
+
 The library is still widely open to changes, so feel free to propose new features or open an issue.
 Read the [documentation](https://github.com/mattecapu/typs/blob/master/DOCS.md) for more information.
 
-License
----
+## License
+
 Typs comes with a good, ol' [MIT license](https://github.com/mattecapu/typs/blob/master/LICENSE).
