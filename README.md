@@ -1,11 +1,18 @@
-typs
-========
-
+# typs
+---
 An handy library for type validation in Javascript
 
-What can I use it for?
+Just
+
+```
+npm install typs --save -D
+```
+
+it.
+
+## What can I use it for?
 ---
-* **Param checking**
+### Param checking
 
 Write a sound REST API or provide strong code constraints validating your parameters
 
@@ -19,7 +26,7 @@ app.get('/api/v1/users/:user_id', function(req) {
 });
 ```
 
-* **Input validation**
+### Input validation
 
 Let typs handle your validation logic in an easy and semantic way
 
@@ -56,3 +63,7 @@ Finally
 ---
 The library is still widely open to changes, so feel free to propose new features or open an issue.
 Read the [documentation](https://github.com/mattecapu/typs/blob/master/DOCS.md) for more information.
+
+License
+---
+Typs comes with a good, ol' [MIT license](https://github.com/mattecapu/typs/blob/master/LICENSE).
