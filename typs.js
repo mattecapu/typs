@@ -199,7 +199,7 @@ function Typs(args, constraints) {
 		max = parseInt(max);
 		exact = parseInt(exact);
 
-		if (min > max) throw new Error('typs().between() expects ordered bounds');
+		if (min > max) throw new Error('typs().len() expects ordered bounds');
 
 		return add((obj) => {
 			return typs(obj).hasLength().check()
@@ -211,7 +211,7 @@ function Typs(args, constraints) {
 	// checks string not-emptiness
 	this.notEmpty = function() {
 		return add((obj) => {
-			return typs(obj).len({min: 1}).check();
+			return typs(obj).len({min: 1}).check() || (typs(obj).object().check() && typs(Object.keys(obj)).notEmpty().check() && obj.length > 0);
 		});
 	};
 
