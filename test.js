@@ -49,6 +49,20 @@ assert(false === typs(undefined).notNull().check());
 assert(false === typs(null).notNull().check());
 assert(false === typs(nan).notNull().check());
 
+// typs().Null()
+assert(true === typs().Null().check());
+assert(true === typs(undefined).Null().check());
+assert(true === typs(null).Null().check());
+assert(true === typs(nan).Null().check());
+
+assert(false === typs([]).Null().check());
+assert(false === typs({}).Null().check());
+assert(false === typs(() => {}).Null().check());
+assert(false === typs('').Null().check());
+assert(false === typs(0).Null().check());
+assert(false === typs(false).Null().check());
+assert(false === typs(infinity).Null().check());
+
 
 // typs().number()
 assert(true === typs(42).number().check());
@@ -400,6 +414,18 @@ try {
 } catch(errors) {
 	assert(true);
 }
+
+
+// typs().isType()
+assert(true === typs(typs()).isType().check());
+assert(true === typs(typs().integer()).isType().check());
+assert(true === typs({a: typs().integer(), b: typs().string()}).isType().check());
+assert(true === typs({a: typs().integer(), b: {c: typs().string(), d: typs().object()}}).isType().check());
+
+assert(false === typs().isType().check());
+assert(false === typs(typs().integer().check()).isType().check());
+assert(false === typs({a: typs().integer(), b: 'error'}).isType().check());
+assert(false === typs({a: typs().integer(), b: {c: typs().string(), d: 'error'}}).isType().check());
 
 
 // typs().equals()

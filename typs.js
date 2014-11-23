@@ -73,6 +73,11 @@ function Typs(args, constraints) {
 			return obj === false || obj === 0 || obj === '' || !!obj;
 		});
 	};
+	this.Null = function() {
+		return add((obj) => {
+			return !typs(obj).notNull().check();
+		});
+	};
 
 	// numbers
 	var sgn_regex = /^-/;
@@ -263,10 +268,21 @@ function Typs(args, constraints) {
 			return obj instanceof class_func;
 		});
 	};
+	
+	// checks if obj is a Typs type signature
+	this.isType = function() {
+		return add((obj) => {
+			if (obj instanceof Typs) return true;
+			if (!typs(obj).object().check()) return false;
+			return Object.keys(obj).every((key) => {
+				return typs(obj[key]).isType().check();
+			});
+		});
+	};
 
 	// checks if type matches obj
 	this.match = function(type) {
-		if(!typs(type).object().check() && !(type instanceof Typs)) {
+		if(!typs(type).isType().check()) {
 			throw new Error('typs().match() expects a type signature object as its first parameter');
 		}
 		if(type instanceof Typs) {
@@ -279,9 +295,6 @@ function Typs(args, constraints) {
 				if(typs(type[key]).object().check()) {
 					// nested objects
 					return typs(obj[key]).is(type[key]).check();
-				} else if(!typs(type[key].checkOn).func().check()) {
-					// same-value fields
-					return typs(obj[key]).equals(type[key]).check();
 				} else {
 					// simple type checks
 					return type[key].checkOn(obj[key]);
@@ -302,6 +315,9 @@ function Typs(args, constraints) {
 	};
 	// checks if obj satisfies one or more type signatures
 	this.matchAny = function(types) {
+		if(!types.every((type) => typs(type).isType().check())) {
+			throw new Error('typs().matchAny() expectes an array of types as its first parameter');
+		}
 		return add((obj) => {
 			return types.some((t) => { return typs(obj).is(t) });
 		});
