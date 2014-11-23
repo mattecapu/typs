@@ -31,18 +31,16 @@ function Typs(args, constraints) {
 
 		var results = [];
 		var async = false;
-		// we use some to shortcut on falsy values
-		if (constraints.some((constraint, i) => {
+		// we use every to shortcut on falsy values
+		if (!constraints.every((constraint, i) => {
 			var result = constraint(obj);
 			results.push(result);
 
 			if (result instanceof Promise) {
 				async = true;
-				return !true;
+				return true;
 			}
-
-			return !result;
-
+			return result;
 		})) return false;
 
 		if (!async) return true;
@@ -51,7 +49,7 @@ function Typs(args, constraints) {
 		return Promise.all(results.filter((result) => {
 			return result instanceof Promise;
 		})).then((results) => {
-			return !results.some((x) => {return !x});
+			return results.every((x) => x);
 		}).catch((error) => {
 			throw error;
 		});
@@ -277,7 +275,7 @@ function Typs(args, constraints) {
 			});
 		}
 		return add((obj) => {
-			return !Object.keys(type).some((key) => {
+			return Object.keys(type).every((key) => {
 				if(typs(type[key]).object().check()) {
 					// nested objects
 					return typs(obj[key]).is(type[key]).check();
@@ -286,7 +284,7 @@ function Typs(args, constraints) {
 					return typs(obj[key]).equals(type[key]).check();
 				} else {
 					// simple type checks
-					return !type[key].checkOn(obj[key]);
+					return type[key].checkOn(obj[key]);
 				}
 			});
 		});
