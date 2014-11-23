@@ -66,6 +66,14 @@ function Typs(args, constraints) {
 			};
 		})).checkOn(null);
 	};
+	
+	// negations of check() and checkOn()
+	this.doesntCheckOn = function(obj) {
+		return !this.checkOn(obj);
+	};
+	this.doesntCheck = function() {
+		return !this.check();
+	};
 
 	// checks if obj is null, undefined or NaN
 	this.notNull = function() {

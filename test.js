@@ -16,6 +16,10 @@ assert(true === typs().check());
 assert(true === typs().checkOn());
 assert(true === typs().is(typs()));
 
+assert(false === typs().doesntCheck());
+assert(false === typs().doesntCheckOn());
+assert(false === typs().isnt(typs()));
+
 
 // promises support check
 typs('shouldn\'t fail').satisfies(function(obj) {
