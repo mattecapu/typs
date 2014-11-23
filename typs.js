@@ -278,19 +278,19 @@ function Typs(args, constraints) {
 	};
 	
 	// checks if obj is a Typs type signature
-	this.isType = function() {
+	this.type = function() {
 		return add((obj) => {
 			if (obj instanceof Typs) return true;
 			if (!typs(obj).object().check()) return false;
 			return Object.keys(obj).every((key) => {
-				return typs(obj[key]).isType().check();
+				return typs(obj[key]).type().check();
 			});
 		});
 	};
 
 	// checks if type matches obj
 	this.match = function(type) {
-		if(!typs(type).isType().check()) {
+		if(!typs(type).type().check()) {
 			throw new Error('typs().match() expects a type signature object as its first parameter');
 		}
 		if(type instanceof Typs) {
@@ -323,7 +323,10 @@ function Typs(args, constraints) {
 	};
 	// checks if obj satisfies one or more type signatures
 	this.matchAny = function(types) {
-		if(!types.every((type) => typs(type).isType().check())) {
+		if(!typs(types).array().check()) {
+			throw new Error('typs().matchAny() expectes an array of types as its first parameter');
+		}
+		if(!types.every((type) => typs(type).type().check())) {
 			throw new Error('typs().matchAny() expectes an array of types as its first parameter');
 		}
 		return add((obj) => {
