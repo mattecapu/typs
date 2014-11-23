@@ -27,7 +27,6 @@ typs('shouldn\'t fail').satisfies(function(obj) {
 }).check().then((res) => {
 	assert(true === res);
 }).catch((error) => {
-	//console.error('error', error);
 	assert(false);
 }).done();
 typs('should fail').satisfies(function(obj) {
