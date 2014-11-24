@@ -66,7 +66,7 @@ function Typs(args, constraints) {
 			};
 		})).checkOn(null);
 	};
-	
+
 	// negations of check() and checkOn()
 	this.doesntCheckOn = function(obj) {
 		return !this.checkOn(obj);
@@ -276,7 +276,7 @@ function Typs(args, constraints) {
 			return obj instanceof class_func;
 		});
 	};
-	
+
 	// checks if obj is a Typs type signature
 	this.type = function() {
 		return add((obj) => {
@@ -302,7 +302,7 @@ function Typs(args, constraints) {
 			return Object.keys(type).every((key) => {
 				if(typs(type[key]).object().check()) {
 					// nested objects
-					return typs(obj[key]).is(type[key]).check();
+					return typs(obj[key]).is(type[key]);
 				} else {
 					// simple type checks
 					return type[key].checkOn(obj[key]);
