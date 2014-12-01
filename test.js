@@ -419,16 +419,16 @@ try {
 }
 
 
-// typs().isType()
-assert(true === typs(typs()).isType().check());
-assert(true === typs(typs().integer()).isType().check());
-assert(true === typs({a: typs().integer(), b: typs().string()}).isType().check());
-assert(true === typs({a: typs().integer(), b: {c: typs().string(), d: typs().object()}}).isType().check());
+// typs().type()
+assert(true === typs(typs()).type().check());
+assert(true === typs(typs().integer()).type().check());
+assert(true === typs({a: typs().integer(), b: typs().string()}).type().check());
+assert(true === typs({a: typs().integer(), b: {c: typs().string(), d: typs().object()}}).type().check());
 
-assert(false === typs().isType().check());
-assert(false === typs(typs().integer().check()).isType().check());
-assert(false === typs({a: typs().integer(), b: 'error'}).isType().check());
-assert(false === typs({a: typs().integer(), b: {c: typs().string(), d: 'error'}}).isType().check());
+assert(false === typs().type().check());
+assert(false === typs(typs().integer().check()).type().check());
+assert(false === typs({a: typs().integer(), b: 'error'}).type().check());
+assert(false === typs({a: typs().integer(), b: {c: typs().string(), d: 'error'}}).type().check());
 
 
 // typs().equals()
