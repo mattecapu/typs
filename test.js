@@ -386,6 +386,7 @@ try {
 // typs().notEmpty()
 assert(true === typs(str, arr, obj).notEmpty().check());
 assert(true === typs({length: 5}).notEmpty().check());
+assert(true === typs({a: 5, b: 7}).notEmpty().check());
 
 assert(false === typs('').notEmpty().check());
 assert(false === typs([]).notEmpty().check());

@@ -222,7 +222,8 @@ function Typs(args, constraints) {
 	// checks string not-emptiness
 	this.notEmpty = function() {
 		return add((obj) => {
-			return typs(obj).len({min: 1}).check() || (typs(obj).object().check() && typs(Object.keys(obj)).notEmpty().check() && obj.length > 0);
+			return typs(obj).len({min: 1}).check()
+					|| (typs(obj).object().check() && typs(obj.length).Null().check() && typs(Object.keys(obj)).notEmpty().check());
 		});
 	};
 
