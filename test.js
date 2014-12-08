@@ -37,6 +37,7 @@ typs('should fail').satisfies(function (obj) {
 	assert('should fail' === error);
 }).done();
 
+
 // typs().eachMatches
 assert(true === typs([1, 2, 3]).eachMatches(typs().integer().positive()).check());
 assert(true === typs('ciao').eachMatches(typs().len({max: 1})).check());
@@ -46,6 +47,17 @@ assert(false === typs(1, 2, 3).eachMatches(typs().integer().positive()).check())
 assert(false === typs(42).eachMatches(typs().greater(40)).check());
 assert(false === typs({'0': 'hello', '1': 'world', length: 2}).eachMatches(typs().len({exact: 2})).check());
 assert(false === typs({'0': 'hello', '1': 'world'}).eachMatches(typs().len({exact: 5})).check());
+
+//typs().whereEach()
+assert(true === typs().whereEach().check());
+assert(true === typs(42).whereEach().notNull().check());
+assert(true === typs([1, 2, 3], [4, 5, 6]).array().whereEach().integer().positive().check());
+assert(true === typs([1, 2, 3], [4, 5, 6]).whereEach().integer().positive().check());
+assert(true === typs([1, 2, 3], {'0': 1, '1': 2, length: 2}).whereEach().integer().positive().check());
+
+assert(false === typs([1, 2, 3], [4, 5, 6]).integer().whereEach().integer().positive().check());
+assert(false === typs([1, 2, 3], [4, 5, 6]).whereEach().integer().negative().check());
+assert(false === typs([1, 2, 3], {}).whereEach().integer().negative().check());
 
 // typs().notNull()
 assert(true === typs([]).notNull().check());
@@ -453,6 +465,13 @@ assert(false === typs({}).equals().check());
 assert(false === typs(42).equals(43).check());
 assert(false === typs('42').equals(42).check());
 assert(false === typs({a: 2, b: 3, c: 4}).equals({a: 2, b: 3}).check());
+
+
+// typs().oneOf()
+assert(true === typs(2).oneOf([1, 2, 3]).check());
+
+assert(false === typs().oneOf([1, 2, 3]).check());
+assert(false === typs(2).oneOf([1, 3]).check());
 
 
 // typs().func()

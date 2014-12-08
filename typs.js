@@ -18,7 +18,8 @@ module.exports = typs;
 
 // a type signature object
 function Typs(args, constraints) {
-
+this._args=args;
+this._constraints=constraints;
 	if (args.length === 0) args = [undefined];
 
 	var add = function (constraint) {
@@ -61,9 +62,7 @@ function Typs(args, constraints) {
 		// with constraints based on args instead of the obj param
 		// passed to them
 		return new Typs([], args.map((arg) => {
-			return (/* obj */) => {
-				return current.checkOn(arg);
-			};
+			return () => current.checkOn(arg)
 		})).checkOn(null);
 	};
 
@@ -74,11 +73,11 @@ function Typs(args, constraints) {
 	this.doesntCheck = function () {
 		return !this.check();
 	};
-	
+
 	// check type signature for all the elements of a collection
 	this.eachMatches = function (type) {
 		if (typs(type).type().doesntCheck()) {
-			throw new Error('typs().each() expects a a type as its first parameter');
+			throw new Error('typs().eachMatches() expects a type as its first parameter');
 		}
 		return add((obj) => {
 			if (typs(obj).hasLength().doesntCheck()) return false;
@@ -86,7 +85,16 @@ function Typs(args, constraints) {
 				return typs(item).is(type);
 			});
 		});
-	}
+	};
+	// switch the validation to items
+	this.whereEach = function () {
+		var new_args = args.map((arg) => {
+			return typs(arg).hasLength().check() ? [].slice.call(arg) : [arg];
+		}).reduce((flat, arg) => {
+			return flat.concat(arg);
+		}, []);
+		return new Typs(new_args, [this.check.bind(this)]);
+	};
 
 	// checks if obj is null, undefined or NaN
 	this.notNull = function () {
@@ -362,6 +370,17 @@ function Typs(args, constraints) {
 	this.notEquals = function (value) {
 		return add((obj) => {
 			return !typs(obj).equals(value).check();
+		});
+	};
+
+	// checks if all elements of obj are in the domain
+	this.oneOf = function (domain) {
+		if (typs(domain).hasLength().doesntCheck()) {
+			throw new Error('typs().oneOf() expects an iterable collection as its first parameter');
+		}
+		return add((obj) => {
+			if (typeof obj === 'undefined') return false;
+			return -1 !== domain.indexOf(obj);
 		});
 	};
 
