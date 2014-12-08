@@ -11,7 +11,7 @@ var typs = require('./typs-transpiled.js');
 var nan = parseFloat(''),
 	infinity = 1/0;
 
-// invariance check -> if no costraints are specified, it should always check
+// no-op check -> if no costraints are specified, it should always check
 assert(true === typs().check());
 assert(true === typs().checkOn());
 assert(true === typs().is(typs()));
@@ -22,14 +22,14 @@ assert(false === typs().isnt(typs()));
 
 
 // promises support check
-typs('shouldn\'t fail').satisfies(function(obj) {
+typs('shouldn\'t fail').satisfies(function (obj) {
 	return Promise.resolve(true);
 }).check().then((res) => {
 	assert(true === res);
 }).catch((error) => {
 	assert(false);
 }).done();
-typs('should fail').satisfies(function(obj) {
+typs('should fail').satisfies(function (obj) {
 	return Promise.reject(obj);
 }).check().then((res) => {
 	assert(false);
@@ -37,6 +37,15 @@ typs('should fail').satisfies(function(obj) {
 	assert('should fail' === error);
 }).done();
 
+// typs().eachMatches
+assert(true === typs([1, 2, 3]).eachMatches(typs().integer().positive()).check());
+assert(true === typs('ciao').eachMatches(typs().len({max: 1})).check());
+assert(true === typs({'0': 'hello', '1': 'world', length: 2}).eachMatches(typs().len({exact: 5})).check());
+
+assert(false === typs(1, 2, 3).eachMatches(typs().integer().positive()).check());
+assert(false === typs(42).eachMatches(typs().greater(40)).check());
+assert(false === typs({'0': 'hello', '1': 'world', length: 2}).eachMatches(typs().len({exact: 2})).check());
+assert(false === typs({'0': 'hello', '1': 'world'}).eachMatches(typs().len({exact: 5})).check());
 
 // typs().notNull()
 assert(true === typs([]).notNull().check());
