@@ -301,6 +301,16 @@ assert(false === typs().array().check());
 assert(false === typs('array').array().check());
 assert(false === typs({'0': 'hello', '1': 'world', length: 2}).array().check());
 
+// typs().unique()
+assert(true === typs([]).unique().check());
+assert(true === typs([1, 2, 3, 4]).unique().check());
+assert(true === typs('world').unique().check());
+assert(true === typs({'0': 'hello', '1': 'world', length: 2}).unique().check());
+
+assert(false === typs().unique().check());
+assert(false === typs(42).unique().check());
+assert(false === typs([1, 2, 3, 3, 4]).unique().check());
+
 
 // typs().object()
 assert(true === typs({}).object().check());

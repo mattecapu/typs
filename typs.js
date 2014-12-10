@@ -273,6 +273,14 @@ this._constraints=constraints;
 		return add(Array.isArray);
 	};
 
+	// checks if a collection has any duplicate entries
+	this.unique = function () {
+		return add((obj) => {
+			if (typs(obj).hasLength().doesntCheck()) return false;
+			return [].slice.call(obj).every((e, i, arr) => i === arr.indexOf(e));
+		});
+	};
+
 	// objects
 	this.object = function () {
 		return add((obj) => {
