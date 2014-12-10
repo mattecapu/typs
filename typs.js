@@ -86,14 +86,26 @@ this._constraints=constraints;
 			});
 		});
 	};
-	// switch the validation to items
-	this.whereEach = function () {
-		var new_args = args.map((arg) => {
-			return typs(arg).hasLength().check() ? [].slice.call(arg) : [arg];
+
+	var map_args = (function (mapper) {
+		var new_args = args.map(mapper).map((arg) => {
+			return arg.length === 0 ? [undefined] : arg;
 		}).reduce((flat, arg) => {
 			return flat.concat(arg);
 		}, []);
 		return new Typs(new_args, [this.check.bind(this)]);
+	}).bind(this);
+	// switch the validation to items
+	this.whereEach = function (mapper) {
+		return map_args((arg) => {
+			return typs(arg).hasLength().check() ? [].slice.call(arg) : [arg];
+		});
+	};
+	// switch the validation to props
+	this.whereEachProp = function (mapper) {
+		return map_args((arg) => {
+			return typs(arg).object().notNull().check() ? Object.keys(arg).map((key) => arg[key]) : [arg];
+		});
 	};
 
 	// checks if obj is null, undefined or NaN

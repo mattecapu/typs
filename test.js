@@ -48,7 +48,7 @@ assert(false === typs(42).eachMatches(typs().greater(40)).check());
 assert(false === typs({'0': 'hello', '1': 'world', length: 2}).eachMatches(typs().len({exact: 2})).check());
 assert(false === typs({'0': 'hello', '1': 'world'}).eachMatches(typs().len({exact: 5})).check());
 
-//typs().whereEach()
+// typs().whereEach()
 assert(true === typs().whereEach().check());
 assert(true === typs(42).whereEach().notNull().check());
 assert(true === typs([1, 2, 3], [4, 5, 6]).array().whereEach().integer().positive().check());
@@ -58,6 +58,18 @@ assert(true === typs([1, 2, 3], {'0': 1, '1': 2, length: 2}).whereEach().integer
 assert(false === typs([1, 2, 3], [4, 5, 6]).integer().whereEach().integer().positive().check());
 assert(false === typs([1, 2, 3], [4, 5, 6]).whereEach().integer().negative().check());
 assert(false === typs([1, 2, 3], {}).whereEach().integer().negative().check());
+
+// typs().whereEachProp()
+assert(true === typs().whereEachProp().check());
+assert(true === typs(42).whereEachProp().notNull().check());
+assert(true === typs({a: 2, b: 7, c: 17}).object().whereEachProp().integer().positive().check());
+assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).whereEachProp().integer().positive().check());
+
+assert(false === typs([1, 2, 3]).whereEachProp().integer().positive().check());
+assert(false === typs({a: 2, b: 7, c: 17}).integer().whereEachProp().integer().positive().check());
+assert(false === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).whereEachProp().integer().negative().check());
+assert(false === typs([1, 2, 3], {}).whereEachProp().integer().negative().check());
+
 
 // typs().notNull()
 assert(true === typs([]).notNull().check());
