@@ -18,13 +18,16 @@ module.exports = typs;
 
 // a type signature object
 function Typs(args, constraints) {
-this._args=args;
-this._constraints=constraints;
+
+	// let's have always something
 	if (args.length === 0) args = [undefined];
 
-	var add = function (constraint) {
-		return new Typs(args, constraints.concat(constraint));
-	};
+	this._args = args;
+	this._constraints = constraints;
+
+	var add = (function (constraint) {
+		return new Typs(this._args, this._constraints.concat(constraint));
+	}).bind(this);
 
 	// checks if obj satisfies all the constraints of this type signature
 	this.checkOn = function (obj) {
@@ -81,31 +84,35 @@ this._constraints=constraints;
 		}
 		return add((obj) => {
 			if (typs(obj).hasLength().doesntCheck()) return false;
-			return [].slice.call(obj).every((item) => {
-				return typs(item).is(type);
-			});
+			return typs(obj).andEach().is(type);
 		});
 	};
 
-	var map_args = (function (mapper) {
-		var new_args = args.map(mapper).map((arg) => {
-			return arg.length === 0 ? [undefined] : arg;
+	// converts the checked objects with mapper
+	this.map = function (mapper) {
+		if (typs(mapper).func().doesntCheck()) {
+			throw new Error('typs().map() expects a function as its first parameter');
+		}
+		var new_args = this._args.map((arg) => {
+			return typs(arg).hasLength().check() ? [].slice.call(arg).map(mapper) : mapper(arg);
+		});
+		return new Typs(new_args, [this.check.bind(this)]);
+	};
+
+	// switch the validation to items
+	this.andEach = function (mapper) {
+		var new_args = this.map((x) => x)._args.map((arg) => {
+			return typs(arg).array().check() ? arg : [arg];
 		}).reduce((flat, arg) => {
 			return flat.concat(arg);
 		}, []);
 		return new Typs(new_args, [this.check.bind(this)]);
-	}).bind(this);
-	// switch the validation to items
-	this.whereEach = function (mapper) {
-		return map_args((arg) => {
-			return typs(arg).hasLength().check() ? [].slice.call(arg) : [arg];
-		});
 	};
 	// switch the validation to props
-	this.whereEachProp = function (mapper) {
-		return map_args((arg) => {
+	this.andEachProp = function (mapper) {
+		return this.map((arg) => {
 			return typs(arg).object().notNull().check() ? Object.keys(arg).map((key) => arg[key]) : [arg];
-		});
+		}).andEach();
 	};
 
 	// checks if obj is null, undefined or NaN
@@ -301,13 +308,12 @@ this._constraints=constraints;
 
 	// checks if obj has all keys defined
 	this.hasKeys = function (keys) {
-		if(!typs(keys).array().check()) throw new Error('typs().keys() expects an array as its first parameter');
+		if(!typs(keys).array().check()) {
+			throw new Error('typs().hasKeys() expects an array as its first parameter');
+		}
 		return add((obj) => {
 			if(!typs(obj).keyable().check()) return false;
-
-			if(keys.length === 0) return true;
-			if(keys.length === 1) return obj[keys[0]] !== undefined;
-			if(typs(obj).hasKeys([keys.pop()]).check()) return typs(obj).hasKeys(keys).check();
+			return keys.every((key) => typeof obj[key] !== 'undefined');
 		});
 	};
 
@@ -368,11 +374,11 @@ this._constraints=constraints;
 		if(!typs(types).array().check()) {
 			throw new Error('typs().matchesAny() expectes an array of types as its first parameter');
 		}
-		if(!types.every((type) => typs(type).type().check())) {
+		if(typs(types).andEach().type().doesntCheck()) {
 			throw new Error('typs().matchesAny() expectes an array of types as its first parameter');
 		}
 		return add((obj) => {
-			return types.some((t) => { return typs(obj).is(t) });
+			return types.some((t) => typs(obj).is(t));
 		});
 	};
 	this.isAny = function (types) {
