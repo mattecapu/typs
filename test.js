@@ -6,7 +6,7 @@
 var assert = require('assert');
 var Promise = require('bluebird');
 
-var typs = require('./typs-transpiled.js');
+var typs = require('./typs.js');
 
 var nan = parseFloat(''),
 	infinity = 1/0;
@@ -370,7 +370,7 @@ try {
 
 var str = 'fortytwo',
 	arr = str.split(''),
-	obj = {'f': 1, 'o': 2, 'r': 3, 't': 4, 'y': 5, 't': 6, 'w': 7, 'o': 8, length: 8};
+	obj = {'f': 1, 'o': 2, 'r': 3, 't': 4, 'y': 5, 't_': 6, 'w': 7, 'o_': 8, length: 8};
 
 // typs().hasLength
 assert(true === typs(str).hasLength().check());
