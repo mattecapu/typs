@@ -1,12 +1,12 @@
 {
   "name": "typs",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "An handy library for type validation in Javascript",
   "main": "typs-transpiled.js",
   "scripts": {
-    "test": "6to5-node test.js",
+    "test": "babel-node test.js",
     "watch": "onchange typs.js test.js -- npm test",
-    "deploy": "6to5 typs.js > typs-transpiled.js"
+    "build": "babel typs.js > typs-transpiled.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/mattecapu/typs",
   "devDependencies": {
-    "6to5": "latest",
+    "babel": "latest",
     "onchange": "^0.1.0"
   },
   "dependencies": {
