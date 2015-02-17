@@ -77,6 +77,7 @@ function Typs(args, constraints) {
 		return !this.check();
 	};
 
+	/*
 	// check type signature for all the elements of a collection
 	this.eachMatches = function (type) {
 		if (typs(type).type().doesntCheck()) {
@@ -114,7 +115,8 @@ function Typs(args, constraints) {
 			return typs(arg).object().notNull().check() ? Object.keys(arg).map((key) => arg[key]) : [arg];
 		}).andEach();
 	};
-
+	*/
+	
 	// checks if obj is null, undefined or NaN
 	this.notNull = function () {
 		return add((obj) => {
@@ -338,7 +340,7 @@ function Typs(args, constraints) {
 		});
 	};
 
-	// checks if type matcheses obj
+	// checks if type matches obj
 	this.matches = function (type) {
 		if(typs(type).type().doesntCheck()) {
 			throw new Error('typs().matches() expects a type signature object as its first parameter');
@@ -376,7 +378,8 @@ function Typs(args, constraints) {
 		if(typs(types).array().doesntCheck()) {
 			throw new Error('typs().matchesAny() expectes an array of types as its first parameter');
 		}
-		if(typs(types).andEach().type().doesntCheck()) {
+		//if(typs(types).andEach().type().doesntCheck()) {
+		if(!types.every((t) => typs(t).type().check())) {
 			throw new Error('typs().matchesAny() expectes an array of types as its first parameter');
 		}
 		return add((obj) => {
