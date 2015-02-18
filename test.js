@@ -38,7 +38,7 @@ typs('should fail').satisfies(function (obj) {
 }).done();
 
 
-/*
+
 // typs().eachMatches
 assert(true === typs([1, 2, 3]).eachMatches(typs().integer().positive()).check());
 assert(true === typs('ciao').eachMatches(typs().len({max: 1})).check());
@@ -81,7 +81,7 @@ assert(false === typs([1, 2, 3]).andEachProp().integer().positive().check());
 assert(false === typs({a: 2, b: 7, c: 17}).integer().andEachProp().integer().positive().check());
 assert(false === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachProp().integer().negative().check());
 assert(false === typs([1, 2, 3], {}).andEachProp().integer().negative().check());
-*/
+
 
 // typs().notNull()
 assert(true === typs([]).notNull().check());

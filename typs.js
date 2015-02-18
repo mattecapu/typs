@@ -26,47 +26,38 @@ function Typs(args, constraints) {
 	this._constraints = constraints;
 
 	var add = (function (constraint) {
-		return new Typs(this._args, this._constraints.concat(constraint));
+		let wrapped_constraint = (objs, constraints) => {
+			let promises = [];
+			if(!objs.every((o) => {
+				let result = constraint(o);
+				if (result instanceof Promise) {
+					promises.push(result);
+					return true;
+				} else {
+					return result;
+				}
+			})) return false;
+
+			if (!promises.length) return true;
+
+			return Promise.all(promises).then((results) => {
+				if(!results.every((x) => !!x)) return false;
+				return 0 === constraints.length ? true : constraints[0](objs, constraints.slice(1));
+			}).catch((error) => {
+				throw error;
+			});
+		}
+		return new Typs(this._args, this._constraints.concat(wrapped_constraint));
 	}).bind(this);
 
-	// checks if obj satisfies all the constraints of this type signature
-	this.checkOn = function (obj) {
-		if (constraints.length === 0) return true;
-
-		var results = [];
-		var async = false;
-		// we use every() to shortcut on falsy values
-		if (!constraints.every((constraint, i) => {
-			var result = constraint(obj);
-			results.push(result);
-
-			if (result instanceof Promise) {
-				async = true;
-				return true;
-			}
-			return result;
-		})) return false;
-
-		if (!async) return true;
-
-		// filter out already-truthy values
-		return Promise.all(results.filter((result) => {
-			return result instanceof Promise;
-		})).then((results) => {
-			return results.every((x) => x);
-		}).catch((error) => {
-			throw error;
-		});
+	// checks if the arguments satisfy all the constraints of this type signature
+	this.checkOn = function (/*variadic lololol*/) {
+		if (0 === constraints.length) return true;
+		return constraints[0]([].slice.call(arguments), this._constraints.slice(1));
 	};
 	// checks if the objects passed to typs() satisfy this type signature
 	this.check = function () {
-		var current = this;
-		// clever way to reuse the code above: we create a new object
-		// with constraints based on args instead of the obj param
-		// passed to them
-		return new Typs([], args.map((arg) => {
-			return () => current.checkOn(arg)
-		})).checkOn(null);
+		return this.checkOn.apply(this, this._args);
 	};
 
 	// negations of check() and checkOn()
@@ -77,7 +68,7 @@ function Typs(args, constraints) {
 		return !this.check();
 	};
 
-	/*
+
 	// check type signature for all the elements of a collection
 	this.eachMatches = function (type) {
 		if (typs(type).type().doesntCheck()) {
@@ -94,29 +85,40 @@ function Typs(args, constraints) {
 		if (typs(mapper).func().doesntCheck()) {
 			throw new Error('typs().map() expects a function as its first parameter');
 		}
-		var new_args = this._args.map((arg) => {
-			return typs(arg).hasLength().check() ? [].slice.call(arg).map(mapper) : mapper(arg);
-		});
-		return new Typs(new_args, [this.check.bind(this)]);
+
+		var wrapped_constraint = (objs, constraints) => {
+			if (0 === constraints.length) return true;
+			objs = objs.map((obj) => typs(obj).hasLength().check() ? [].slice.call(obj).map(mapper) : mapper(obj));
+			return constraints[0](objs, constraints.slice(1));
+		};
+		return new Typs(this._args, this._constraints.concat(wrapped_constraint));
 	};
 
 	// switch the validation to items
-	this.andEach = function (mapper) {
-		var new_args = this.map((x) => x)._args.map((arg) => {
-			return typs(arg).array().check() ? arg : [arg];
-		}).reduce((flat, arg) => {
-			return flat.concat(arg);
-		}, []);
-		return new Typs(new_args, [this.check.bind(this)]);
+	this.andEach = function () {
+		var wrapped_constraint = (objs, constraints) => {
+			if (0 === constraints.length) return true;
+			console.log('before',objs);
+			objs = objs.map((obj) => typs(obj).hasLength().check() ? [].slice.call(obj) : obj).reduce((f, o) => f.concat(o), []);
+			console.log('after',objs);
+			return constraints[0](objs, constraints.slice(1));
+		};
+		return new Typs(this._args, this._constraints.concat(wrapped_constraint));
 	};
 	// switch the validation to props
 	this.andEachProp = function (mapper) {
 		return this.map((arg) => {
 			return typs(arg).object().notNull().check() ? Object.keys(arg).map((key) => arg[key]) : [arg];
 		}).andEach();
+		var wrapped_constraint = (objs, constraints) => {
+			if (0 === constraints.length) return true;
+			objs = objs.map((obj) => typs(obj).object().notNull().check() ? Object.keys(obj).map((k) => obj[k]) : obj);
+			return constraints[0](objs, constraints.slice(1));
+		};
+		return new Typs(this._args, this._constraints.concat(wrapped_constraint)).andEach();
 	};
-	*/
-	
+
+
 	// checks if obj is null, undefined or NaN
 	this.notNull = function () {
 		return add((obj) => {
@@ -297,7 +299,7 @@ function Typs(args, constraints) {
 	// objects
 	this.object = function () {
 		return add((obj) => {
-			return typs(obj).array().doesntCheck() && typeof obj === 'object'
+			return typs(obj).array().doesntCheck() && typeof obj === 'object';
 		});
 	};
 
