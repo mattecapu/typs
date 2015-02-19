@@ -1,12 +1,13 @@
 {
   "name": "typs",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "description": "An handy library for type validation in Javascript",
   "main": "typs-transpiled.js",
   "scripts": {
     "test": "babel-node test.js",
     "watch": "onchange typs.js test.js -- npm test",
-    "build": "babel typs.js > typs-transpiled.js"
+    "build": "babel typs.js > typs-transpiled.js",
+	"deploy": "git tag \"v%npm_package_version%\" && npm run build && npm publish && git push --follow-tags"
   },
   "repository": {
     "type": "git",
@@ -26,9 +27,9 @@
   "homepage": "https://github.com/mattecapu/typs",
   "devDependencies": {
     "babel": "latest",
-    "onchange": "^0.1.0"
+    "onchange": "^0.2.0"
   },
   "dependencies": {
-    "bluebird": "^2.9.6"
+    "bluebird": "^2.9.11"
   }
 }
