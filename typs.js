@@ -25,14 +25,16 @@ function Typs(args, constraints) {
 	this._args = args;
 	this._constraints = constraints;
 
-	var add = (function (constraint) {
+	var add = (function (constraint, transformer = (x) => x) {
 		let wrapped_constraint = (objs, constraints) => {
-			
+
+			objs = transformer(objs);
+
 			let next = () => {
 				return 0 === constraints.length ? true : constraints[0](objs, constraints.slice(1));
 			};
 			let promises = [];
-			
+
 			if(!objs.every((o) => {
 				let result = constraint(o);
 				if (result instanceof Promise) {
@@ -56,7 +58,7 @@ function Typs(args, constraints) {
 	}).bind(this);
 
 	// checks if the arguments satisfy all the constraints of this type signature
-	this.checkOn = function (/*variadic lololol*/) {
+	this.checkOn = function (/*variadic*/) {
 		if (0 === constraints.length) return true;
 		return constraints[0]([].slice.call(arguments), this._constraints.slice(1));
 	};
@@ -73,52 +75,50 @@ function Typs(args, constraints) {
 		return !this.check();
 	};
 
-
-	// check type signature for all the elements of a collection
-	this.eachMatches = function (type) {
-		if (typs(type).type().doesntCheck()) {
-			throw new Error('typs().eachMatches() expects a type as its first parameter');
-		}
-		return add((obj) => {
-			if (typs(obj).hasLength().doesntCheck()) return false;
-			return typs(obj).andEach().is(type);
-		});
-	};
-
 	// converts the checked objects with mapper
 	this.map = function (mapper) {
 		if (typs(mapper).func().doesntCheck()) {
 			throw new Error('typs().map() expects a function as its first parameter');
 		}
 
-		var wrapped_constraint = (objs, constraints) => {
-			if (0 === constraints.length) return true;
-			objs = objs.map((obj) => typs(obj).hasLength().check() ? [].slice.call(obj).map(mapper) : mapper(obj));
-			return constraints[0](objs, constraints.slice(1));
-		};
-		return new Typs(this._args, this._constraints.concat(wrapped_constraint));
+		return add(
+			() => true,
+			(objs) => {
+				return objs.map((obj) => {
+					if (typs(obj).hasLength().check()) {
+						return [].slice.call(obj).map(mapper);
+					} else {
+						return mapper(obj)
+					}
+				});
+			}
+		);
 	};
 
 	// switch the validation to items
 	this.andEach = function () {
-		var wrapped_constraint = (objs, constraints) => {
-			if (0 === constraints.length) return true;
-			objs = objs.map((obj) => typs(obj).hasLength().check() ? [].slice.call(obj) : obj).reduce((f, o) => f.concat(o), []);
-			return constraints[0](objs, constraints.slice(1));
-		};
-		return new Typs(this._args, this._constraints.concat(wrapped_constraint));
+		return add(
+			() => true,
+			(objs) => {
+				return objs.map((obj) => {
+					if (typs(obj).hasLength().check()) {
+						return [].slice.call(obj);
+					} else {
+						return obj;
+					}
+				}).reduce((f, o) => f.concat(o), []);
+			}
+		);
 	};
-	// switch the validation to props
+	// switch the validation to properties
 	this.andEachProp = function (mapper) {
-		return this.map((arg) => {
-			return typs(arg).object().notNull().check() ? Object.keys(arg).map((key) => arg[key]) : [arg];
+		return this.map((obj) => {
+			if (typs(obj).object().notNull().check()) {
+				return Object.keys(obj).map((k) => obj[k]);
+			} else {
+				return [obj];
+			}
 		}).andEach();
-		var wrapped_constraint = (objs, constraints) => {
-			if (0 === constraints.length) return true;
-			objs = objs.map((obj) => typs(obj).object().notNull().check() ? Object.keys(obj).map((k) => obj[k]) : obj);
-			return constraints[0](objs, constraints.slice(1));
-		};
-		return new Typs(this._args, this._constraints.concat(wrapped_constraint)).andEach();
 	};
 
 
@@ -186,7 +186,9 @@ function Typs(args, constraints) {
 
 	// checks if obj is greater than num
 	this.greater = function (num) {
-		if (typs(num).number().doesntCheck()) throw new Error('typs().greater() expects a number as its first parameter');
+		if (typs(num).number().doesntCheck()) {
+			throw new Error('typs().greater() expects a number as its first parameter');
+		}
 		return add((obj) => {
 			return typs(obj).number().check() && parseFloat(obj) > parseFloat(num);
 		});
@@ -194,39 +196,40 @@ function Typs(args, constraints) {
 
 	// checks if obj is lesser than num
 	this.lesser = function (num) {
-		if (typs(num).number().doesntCheck()) throw new Error('typs().greater() expects a number as its first parameter');
+		if (typs(num).number().doesntCheck()) {
+			throw new Error('typs().greater() expects a number as its first parameter');
+		}
 		return add((obj) => {
 			return typs(obj).number().check() && parseFloat(obj) < parseFloat(num);
 		});
 	};
 
 	// checks if obj is between min and max, using includeStart and includeEnd to specify if include the bounds
-	this.between = function ({min, max, includeStart, includeEnd}) {
+	this.between = function ({min, max, includeStart = false, includeEnd = false}) {
 
-		if (includeStart === undefined) includeStart = false;
-		if (includeEnd === undefined) includeEnd = false;
-
-		if (typs(min, max).notNull().number().doesntCheck()) {
-			throw new Error('typs().between() expects numeric bounds');
-		}
-		if (typs(includeStart, includeEnd).bool().doesntCheck()) {
-			throw new Error('typs().between() expects includeStart and includeEnd to be booleans');
-		}
+		var types = [];
 
 		min = parseFloat(min);
 		max = parseFloat(max);
 
+		// it doesn't duplicate the checks on lesser() and greater(),
+		// but refires the exception to hide the rewiring of between()
+		try {
+			types.push(typs().greater(min).lesser(max));
+		} catch(e) {
+			throw new Error('typs().between() expects numeric bounds');
+		}
+
 		if (min > max) throw new Error('typs().between() expects ordered bounds');
 
-		return add((obj) => {
-			if(typs(obj).number().doesntCheck()) return false;
+		if (typs(includeStart, includeEnd).bool().doesntCheck()) {
+			throw new Error('typs().between() expects includeStart and includeEnd to be booleans');
+		}
 
-			var num = parseFloat(obj);
+		if (includeStart) types.push(typs().equals(min));
+		if (includeEnd) types.push(typs().equals(max));
 
-			return (min < num && num < max)
-					|| (includeStart && min === num)
-					|| (includeEnd && max === num);
-		});
+		return this.matchesAny(types);
 	};
 
 	// checks if obj is a boolean
@@ -244,12 +247,10 @@ function Typs(args, constraints) {
 	};
 
 	this.hasLength = function () {
-		return add((obj) => {
-			return typs(obj).string().check() || typs(obj).array().check() || typs(obj).object().hasKeys(['length']).check();
-		});
+		return this.matchesAny([typs().string(), typs().array(), typs().object().hasKeys(['length'])]);
 	};
 
-	// checks if obj.length respects the given constraints (also good for arrays)
+	// checks if obj.length respects the given constraints (good for any array-like object)
 	this.len = function ({min, max, exact}) {
 		var param_type = typs().notNull().integer().positive();
 
@@ -270,7 +271,7 @@ function Typs(args, constraints) {
 					&& (typs(exact).is(param_type) ? obj.length === exact : true)
 		});
 	};
-	// checks string not-emptiness
+	// checks array-like objects for not-emptiness
 	this.notEmpty = function () {
 		return add((obj) => {
 			return typs(obj).len({min: 1}).check()
@@ -280,7 +281,9 @@ function Typs(args, constraints) {
 
 	// checks if obj matches the provided regex
 	this.regex = function (regex) {
-		if(!typs(regex).instanceOf(RegExp)) throw new Error('typs().regex() expects a RegExp object as its first parameter');
+		if(!typs(regex).instanceOf(RegExp)) {
+			throw new Error('typs().regex() expects a RegExp object as its first parameter');
+		}
 		return add((obj) => {
 			return typs(obj).string().check() && regex.test(obj);
 		});
@@ -328,7 +331,9 @@ function Typs(args, constraints) {
 
 	// checks if obj is an instance of the given class
 	this.instanceOf = function (class_func) {
-		if(typs(class_func).func().doesntCheck()) throw new Error('typs().instanceOf() expects a function class as its first parameter');
+		if(typs(class_func).func().doesntCheck()) {
+			throw new Error('typs().instanceOf() expects a function class as its first parameter');
+		}
 		return add((obj) => {
 			return obj instanceof class_func;
 		});
@@ -369,22 +374,20 @@ function Typs(args, constraints) {
 	};
 	// shortcuts for matches().check()
 	this.is = function (type) {
-		return add((obj) => {
-			return typs(obj).matches(type).check();
-		}).check();
+		return this.matches(type).check();
 	};
 	this.isnt = function (type) {
-		return add((obj) => {
-			return !typs(obj).is(type);
-		}).check();
+		return !this.is(type);
 	};
+	this.are = this.is.bind(this);
+	this.arent = this.isnt.bind(this);
+
 	// checks if obj satisfies one or more type signatures
 	this.matchesAny = function (types) {
 		if(typs(types).array().doesntCheck()) {
 			throw new Error('typs().matchesAny() expectes an array of types as its first parameter');
 		}
-		//if(typs(types).andEach().type().doesntCheck()) {
-		if(!types.every((t) => typs(t).type().check())) {
+		if(typs.apply(typs, types).type().doesntCheck()) {
 			throw new Error('typs().matchesAny() expectes an array of types as its first parameter');
 		}
 		return add((obj) => {
@@ -392,9 +395,15 @@ function Typs(args, constraints) {
 		});
 	};
 	this.isAny = function (types) {
-		return add((obj) => {
-			return typs(obj).matchesAny(types).check();
-		}).check();
+		return this.matchesAny(types).check();
+	};
+
+	// check type signature for all the elements of a collection
+	this.eachMatches = function (type) {
+		if (typs(type).type().doesntCheck()) {
+			throw new Error('typs().eachMatches() expects a type as its first parameter');
+		}
+		return this.hasLength().andEach().matches(type);
 	};
 
 	// checks if value equals to obj
@@ -409,7 +418,7 @@ function Typs(args, constraints) {
 		});
 	};
 
-	// checks if all elements of obj are in the domain
+	// checks if obj is one element of domain
 	this.oneOf = function (domain) {
 		if (typs(domain).hasLength().doesntCheck()) {
 			throw new Error('typs().oneOf() expects an iterable collection as its first parameter');
@@ -429,7 +438,9 @@ function Typs(args, constraints) {
 
 	// checks if obj satisfies the constraints defined in the function constraint(obj);
 	this.satisfies = function (constraint) {
-		if(typs(constraint).func().doesntCheck()) throw new Error('typs().satisfies() expects a function as its first argument');
+		if(typs(constraint).func().doesntCheck()) {
+			throw new Error('typs().satisfies() expects a function as its first argument');
+		}
 		return add(constraint);
 	};
 
