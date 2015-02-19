@@ -27,7 +27,12 @@ function Typs(args, constraints) {
 
 	var add = (function (constraint) {
 		let wrapped_constraint = (objs, constraints) => {
+			
+			let next = () => {
+				return 0 === constraints.length ? true : constraints[0](objs, constraints.slice(1));
+			};
 			let promises = [];
+			
 			if(!objs.every((o) => {
 				let result = constraint(o);
 				if (result instanceof Promise) {
@@ -38,11 +43,11 @@ function Typs(args, constraints) {
 				}
 			})) return false;
 
-			if (!promises.length) return true;
+			if (!promises.length) return next();
 
 			return Promise.all(promises).then((results) => {
 				if(!results.every((x) => !!x)) return false;
-				return 0 === constraints.length ? true : constraints[0](objs, constraints.slice(1));
+				return next();
 			}).catch((error) => {
 				throw error;
 			});
@@ -98,9 +103,7 @@ function Typs(args, constraints) {
 	this.andEach = function () {
 		var wrapped_constraint = (objs, constraints) => {
 			if (0 === constraints.length) return true;
-			console.log('before',objs);
 			objs = objs.map((obj) => typs(obj).hasLength().check() ? [].slice.call(obj) : obj).reduce((f, o) => f.concat(o), []);
-			console.log('after',objs);
 			return constraints[0](objs, constraints.slice(1));
 		};
 		return new Typs(this._args, this._constraints.concat(wrapped_constraint));
