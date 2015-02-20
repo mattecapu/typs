@@ -124,6 +124,13 @@ function Typs(args, constraints) {
 	};
 
 
+	// checks if obj doesn't match the specified type
+	this.not = function (type) {
+		return add((obj) => {
+			return typs(obj).isnt(type);
+		});
+	};
+
 	// checks if obj is null, undefined or NaN
 	this.Null = function () {
 		return add((obj) => {
@@ -131,9 +138,7 @@ function Typs(args, constraints) {
 		});
 	};
 	this.notNull = function () {
-		return add((obj) => {
-			return typs(obj).Null().doesntCheck();
-		});
+		return this.not(typs().Null());
 	};
 
 	// checks if obj is undefined
@@ -143,9 +148,7 @@ function Typs(args, constraints) {
 		});
 	};
 	this.def = function () {
-		return add((obj) => {
-			return typs(obj).undef().doesntCheck();
-		});
+		return this.not(typs().undef());
 	};
 
 	// numbers
@@ -261,7 +264,11 @@ function Typs(args, constraints) {
 	};
 
 	this.hasLength = function () {
-		return this.matchesAny([typs().string(), typs().array(), typs().object().hasKeys(['length'])]);
+		return this.matchesAny([
+			typs().string(),
+			typs().array(),
+			typs().object().hasKeys(['length'])
+		]);
 	};
 
 	// checks if obj.length respects the given constraints (good for any array-like object)
@@ -427,9 +434,7 @@ function Typs(args, constraints) {
 		});
 	};
 	this.notEquals = function (value) {
-		return add((obj) => {
-			return typs(obj).equals(value).doesntCheck();
-		});
+		return this.not(typs().equals(value));
 	};
 
 	// checks if obj is one element of domain

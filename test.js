@@ -151,6 +151,10 @@ try {
 	assert(true);
 }
 
+// typs().not()
+assert(true === typs(42).not(typs().string()).check());
+assert(true === typs('abc').not(typs().integer()).check());
+
 
 // typs().Null()
 assert(true === typs().Null().check());
