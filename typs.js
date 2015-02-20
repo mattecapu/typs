@@ -125,14 +125,26 @@ function Typs(args, constraints) {
 
 
 	// checks if obj is null, undefined or NaN
-	this.notNull = function () {
-		return add((obj) => {
-			return obj === false || obj === 0 || obj === '' || !!obj;
-		});
-	};
 	this.Null = function () {
 		return add((obj) => {
-			return typs(obj).notNull().doesntCheck();
+			return obj === null || obj === void 0 || obj !== obj;
+		});
+	};
+	this.notNull = function () {
+		return add((obj) => {
+			return typs(obj).Null().doesntCheck();
+		});
+	};
+
+	// checks if obj is undefined
+	this.undef = function () {
+		return add((obj) => {
+			return obj === void 0;
+		});
+	};
+	this.def = function () {
+		return add((obj) => {
+			return typs(obj).undef().doesntCheck();
 		});
 	};
 

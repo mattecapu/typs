@@ -58,13 +58,17 @@ assert(true === typs({a: 4, b: 2}).object().map((x) => x).object().check());
 assert(true === typs(42).map((x) => 2 * x).equals(84).check());
 assert(true === typs([4, 2]).array().andEach().map((x) => x).integer().check());
 assert(true === typs([3, 5]).andEach().map((x) => 2 * x).satisfies((x) => !(x % 2)).check());
+assert(true === typs(void 0).undef().map((x) => x).undef().check());
 
 assert(false === typs(42).map((x) => x[0]).equals(42).check());
 assert(false === typs([4, 2]).array().map((x) => 2*x).equals([8, 4]).check());
 assert(false === typs([4, 2], 5).map((x) => x).integer().check());
+assert(false === typs(void 0).undef().map((x) => x).def().check());
+assert(false === typs(42).def().map((x) => x).undef().check());
 
 // typs().andEach()
 assert(true === typs().andEach().check());
+assert(true === typs().undef().andEachProp().undef().check());
 assert(true === typs(42).andEach().notNull().check());
 assert(true === typs([1, 2, 3], [4, 5, 6]).array().andEach().integer().positive().check());
 assert(true === typs([1, 2, 3], [4, 5, 6]).andEach().integer().positive().check());
@@ -76,6 +80,7 @@ assert(false === typs([1, 2, 3], {}).andEach().integer().negative().check());
 
 // typs().andEachProp()
 assert(true === typs().andEachProp().check());
+assert(true === typs().undef().andEachProp().undef().check());
 assert(true === typs(42).andEachProp().notNull().check());
 assert(true === typs({a: 2, b: 7, c: 17}).object().andEachProp().integer().positive().check());
 assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachProp().integer().positive().check());
@@ -140,12 +145,26 @@ try {
 	assert(true);
 }
 try {
-	typs("hello").andEachMapEntry().check();
+	typs('hello').andEachMapEntry().check();
 	assert(false);
 } catch(errors) {
 	assert(true);
 }
 
+
+// typs().Null()
+assert(true === typs().Null().check());
+assert(true === typs(undefined).Null().check());
+assert(true === typs(null).Null().check());
+assert(true === typs(nan).Null().check());
+
+assert(false === typs([]).Null().check());
+assert(false === typs({}).Null().check());
+assert(false === typs(() => {}).Null().check());
+assert(false === typs('').Null().check());
+assert(false === typs(0).Null().check());
+assert(false === typs(false).Null().check());
+assert(false === typs(infinity).Null().check());
 
 // typs().notNull()
 assert(true === typs([]).notNull().check());
@@ -161,19 +180,31 @@ assert(false === typs(undefined).notNull().check());
 assert(false === typs(null).notNull().check());
 assert(false === typs(nan).notNull().check());
 
-// typs().Null()
-assert(true === typs().Null().check());
-assert(true === typs(undefined).Null().check());
-assert(true === typs(null).Null().check());
-assert(true === typs(nan).Null().check());
+// typs().def()
+assert(true === typs(0).def().check());
+assert(true === typs('').def().check());
+assert(true === typs(false).def().check());
+assert(true === typs(null).def().check());
+assert(true === typs({}).def().check());
+assert(true === typs([]).def().check());
+assert(true === typs(nan).def().check());
+assert(true === typs(infinity).def().check());
 
-assert(false === typs([]).Null().check());
-assert(false === typs({}).Null().check());
-assert(false === typs(() => {}).Null().check());
-assert(false === typs('').Null().check());
-assert(false === typs(0).Null().check());
-assert(false === typs(false).Null().check());
-assert(false === typs(infinity).Null().check());
+assert(false === typs().def().check());
+assert(false === typs(void 0).def().check());
+
+// typs().undef()
+assert(true === typs().undef().check());
+assert(true === typs(void 0).undef().check());
+
+assert(false === typs(0).undef().check());
+assert(false === typs('').undef().check());
+assert(false === typs(false).undef().check());
+assert(false === typs(null).undef().check());
+assert(false === typs({}).undef().check());
+assert(false === typs([]).undef().check());
+assert(false === typs(nan).undef().check());
+assert(false === typs(infinity).undef().check());
 
 
 // typs().number()
