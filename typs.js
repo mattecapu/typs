@@ -75,24 +75,12 @@ function Typs(args, constraints) {
 		return !this.check();
 	};
 
-	// converts the checked objects with mapper
+	// maps the arguments
 	this.map = function (mapper) {
 		if (typs(mapper).func().doesntCheck()) {
 			throw new Error('typs().map() expects a function as its first parameter');
 		}
-
-		return add(
-			() => true,
-			(objs) => {
-				return objs.map((obj) => {
-					if (typs(obj).hasLength().check()) {
-						return [].slice.call(obj).map(mapper);
-					} else {
-						return mapper(obj)
-					}
-				});
-			}
-		);
+		return add(() => true, (objs) => objs.map(mapper));
 	};
 
 	// switch the validation to items
@@ -101,23 +89,37 @@ function Typs(args, constraints) {
 			() => true,
 			(objs) => {
 				return objs.map((obj) => {
-					if (typs(obj).hasLength().check()) {
-						return [].slice.call(obj);
-					} else {
-						return obj;
-					}
+					if (typs(obj).hasLength().doesntCheck()) return obj;
+					return [].slice.call(obj);
 				}).reduce((f, o) => f.concat(o), []);
 			}
 		);
 	};
 	// switch the validation to properties
-	this.andEachProp = function (mapper) {
+	this.andEachProp = function () {
 		return this.map((obj) => {
-			if (typs(obj).object().notNull().check()) {
-				return Object.keys(obj).map((k) => obj[k]);
-			} else {
-				return [obj];
+			if (typs(obj).object().notNull().doesntCheck()) return [obj];
+			return Object.keys(obj).map((k) => obj[k]);
+		}).andEach();
+	};
+	// switch the validation to keys
+	this.andEachKey = function () {
+		return this.map((obj) => {
+			if (typs(obj).object().notNull().doesntCheck() && typs(obj).array().doesntCheck()) {
+				throw new Error('typs().andEachKey() can\'t read keys of a non-object');
 			}
+			return Object.keys(obj);
+		}).andEach();
+	};
+	// switch the validation to an array of key/values objects
+	this.andEachMapEntry = function () {
+		return this.map((obj) => {
+			if (typs(obj).object().notNull().doesntCheck() && typs(obj).array().doesntCheck()) {
+				throw new Error('typs().andEachMapEntry() can\'t read entries from a non-object');
+			}
+			return Object.keys(obj).map((key) => {
+				return {key, value: obj[key]};
+			});
 		}).andEach();
 	};
 

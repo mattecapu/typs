@@ -51,14 +51,17 @@ assert(false === typs({'0': 'hello', '1': 'world'}).eachMatches(typs().len({exac
 
 // typs().map()
 assert(true === typs().map((x) => x).check());
-assert(true === typs(42).number().map((x) => x).number().check());
-assert(true === typs('hello world').string().map((x) => x).array().check());
+assert(true === typs(42, 43).number().map((x) => x).number().check());
+assert(true === typs('hello', 'world').string().map((x) => x).string().check());
 assert(true === typs([4, 2]).array().map((x) => x).array().check());
 assert(true === typs({a: 4, b: 2}).object().map((x) => x).object().check());
 assert(true === typs(42).map((x) => 2 * x).equals(84).check());
-assert(true === typs([4, 2]).map((x) => 2 * x).equals([8, 4]).check());
+assert(true === typs([4, 2]).array().andEach().map((x) => x).integer().check());
+assert(true === typs([3, 5]).andEach().map((x) => 2 * x).satisfies((x) => !(x % 2)).check());
 
 assert(false === typs(42).map((x) => x[0]).equals(42).check());
+assert(false === typs([4, 2]).array().map((x) => 2*x).equals([8, 4]).check());
+assert(false === typs([4, 2], 5).map((x) => x).integer().check());
 
 // typs().andEach()
 assert(true === typs().andEach().check());
@@ -81,6 +84,67 @@ assert(false === typs([1, 2, 3]).andEachProp().integer().positive().check());
 assert(false === typs({a: 2, b: 7, c: 17}).integer().andEachProp().integer().positive().check());
 assert(false === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachProp().integer().negative().check());
 assert(false === typs([1, 2, 3], {}).andEachProp().integer().negative().check());
+
+// typs().andEachKey()
+assert(true === typs({a: 2, b: 7, c: 17}).object().andEachKey().string().notEmpty().check());
+assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachKey().string().notEmpty().check());
+assert(true === typs([-1, -2, -3]).andEachKey().integer().positive().check());
+assert(true === typs([-1, -2, -3], {}).andEachKey().integer().positive().check());
+
+assert(false === typs({a: 2, b: 7, c: 17}).andEachKey().integer().positive().check());
+assert(false === typs({a: 2, b: 7, c: 17}).string().andEachKey().integer().positive().check());
+assert(false === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachKey().string().len({min: 2}).check());
+
+try {
+	typs().andEachKey().check();
+	assert(false);
+} catch(errors) {
+	assert(true);
+}
+try {
+	typs(42).andEachKey().check();
+	assert(false);
+} catch(errors) {
+	assert(true);
+}
+try {
+	typs('hello').andEachKey().check();
+	assert(false);
+} catch(errors) {
+	assert(true);
+}
+
+// typs().andEachMapEntry()
+assert(true === typs([-1, -2, -3], {}).andEachMapEntry().object().check());
+assert(true === typs([-1, -2, -3], {}).andEachMapEntry().object().hasKeys(['key', 'value']).check());
+assert(true === typs({a: 2, b: 7, c: 17}).andEachMapEntry().matches({key: typs().oneOf(['a','b','c']), value: typs().integer()}).check());
+assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachMapEntry().matches({key: typs().oneOf(['a','b','c']), value: typs().integer()}).check());
+assert(true === typs([-1, -2, -3]).andEachMapEntry().map((x) => x.key).integer().positive().check());
+assert(true === typs([-1, -2, -3]).andEachMapEntry().map((x) => x.value).integer().negative().check());
+
+assert(false === typs({a: 2, b: 7, c: 17}).andEachMapEntry().integer().positive().check());
+assert(false === typs({a: 2, b: 7, c: 17}).andEachMapEntry().string().check());
+assert(false === typs({a: 2, b: 7, c: 17}).string().andEachMapEntry().object().check());
+assert(false === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachMapEntry().string().len({min: 2}).check());
+
+try {
+	typs().andEachMapEntry().check();
+	assert(false);
+} catch(errors) {
+	assert(true);
+}
+try {
+	typs(42).andEachMapEntry().check();
+	assert(false);
+} catch(errors) {
+	assert(true);
+}
+try {
+	typs("hello").andEachMapEntry().check();
+	assert(false);
+} catch(errors) {
+	assert(true);
+}
 
 
 // typs().notNull()
