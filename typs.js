@@ -332,7 +332,7 @@ function Typs(args, constraints) {
 
 	// returns true if accessing obj[<key>] doesn't raise an exception
 	this.keyable = function () {
-		return this.matchesAny([
+		return this.notNull().matchesAny([
 			typs().object(),
 			typs().array(),
 			typs().string()
@@ -382,6 +382,7 @@ function Typs(args, constraints) {
 			});
 		}
 		return add((obj) => {
+			if (typs(obj).keyable().doesntCheck()) return false;
 			return Object.keys(type).every((key) => {
 				if(typs(type[key]).object().check()) {
 					// nested objects
