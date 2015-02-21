@@ -170,9 +170,7 @@ function Typs(args, constraints) {
 	};
 	// checks for infiniteness
 	this.infinite = function () {
-		return add((obj) => {
-			return typs(obj).number().check() && !isFinite(obj.toString().replace(sgn_regex, ''));
-		});
+		return this.number().not(typs().finite());
 	};
 
 	// checks if obj is an integer
@@ -292,12 +290,23 @@ function Typs(args, constraints) {
 					&& (typs(exact).is(param_type) ? obj.length === exact : true)
 		});
 	};
-	// checks array-like objects for not-emptiness
-	this.notEmpty = function () {
+
+	// checks array-like objects for emptiness
+	this.empty = function () {
 		return add((obj) => {
-			return typs(obj).len({min: 1}).check()
-					|| (typs(obj).object().check() && typs(obj.length).Null().check() && typs(Object.keys(obj)).notEmpty().check());
+			return typs(obj).len({exact: 0}).check();
 		});
+	};
+	this.notEmpty = function () {
+		return this.not(typs().empty());
+	};
+
+	// checks objects for emptiness
+	this.hollow = function () {
+		return this.def().andEachProp().undef();
+	};
+	this.notHollow = function () {
+		return this.def().not(typs().hollow());
 	};
 
 	// checks if obj matches the provided regex
@@ -346,7 +355,7 @@ function Typs(args, constraints) {
 		}
 		return add((obj) => {
 			if(typs(obj).keyable().doesntCheck()) return false;
-			return keys.every((key) => typeof obj[key] !== 'undefined');
+			return keys.every((key) => key in obj);
 		});
 	};
 
