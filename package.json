@@ -1,6 +1,6 @@
 {
   "name": "typs",
-  "version": "0.3.5",
+  "version": "0.3.7",
   "description": "An handy library for type validation in Javascript",
   "main": "typs-transpiled.js",
   "scripts": {
