@@ -5,11 +5,11 @@
   "author": "Matteo Capucci <mattecapu@live.it>",
   "main": "index.js",
   "scripts": {
-    "test": "babel-node test.js",
+    "test": "npm run build && babel-node test.js",
     "watch": "chokidar typs.js test.js -c 'npm test'",
     "build": "babel typs.js > index.js",
     "preversion": "npm test",
-    "version": "npm run build && git add . --all",
+    "version": "git add . --all",
     "postversion": "git push --follow-tags"
   },
   "devDependencies": {

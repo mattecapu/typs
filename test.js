@@ -2,13 +2,12 @@
 	Naive test suite
 */
 
-var assert = require('assert');
-var Promise = require('bluebird');
+import assert from 'assert';
+import Promise from 'bluebird';
 
-var typs = require('./index.js');
+import typs from './';
 
-var nan = parseFloat(''),
-	infinity = 1/0;
+const nan = parseFloat('');
 
 // no-op check -> if no costraints are specified, it should always check
 assert(true === typs().check());
@@ -167,7 +166,7 @@ assert(false === typs(() => {}).Null().check());
 assert(false === typs('').Null().check());
 assert(false === typs(0).Null().check());
 assert(false === typs(false).Null().check());
-assert(false === typs(infinity).Null().check());
+assert(false === typs(Infinity).Null().check());
 
 
 // typs().undef() && def()
@@ -181,7 +180,7 @@ assert(false === typs(null).undef().check());
 assert(false === typs({}).undef().check());
 assert(false === typs([]).undef().check());
 assert(false === typs(nan).undef().check());
-assert(false === typs(infinity).undef().check());
+assert(false === typs(Infinity).undef().check());
 
 
 // typs().number()
@@ -202,8 +201,8 @@ assert(false === typs(nan).number().check());
 assert(true === typs(2e30).finite().check());
 assert(true === typs(-2e30).finite().check());
 
-assert(false === typs(infinity).finite().check());
-assert(false === typs(-infinity).finite().check());
+assert(false === typs(Infinity).finite().check());
+assert(false === typs(-Infinity).finite().check());
 
 
 // typs().integer()
@@ -220,16 +219,16 @@ assert(true === typs(42).positive().check());
 assert(true === typs(0).positive().check());
 
 assert(false === typs(-42).positive().check());
-assert(false === typs(-infinity).positive().check());
+assert(false === typs(-Infinity).positive().check());
 
 
 // typs().negative()
 assert(true === typs(-42).negative().check());
-assert(true === typs(-infinity).negative().check());
+assert(true === typs(-Infinity).negative().check());
 
 assert(false === typs(42).negative().check());
 assert(false === typs(0).negative().check());
-assert(false === typs(infinity).negative().check());
+assert(false === typs(Infinity).negative().check());
 
 
 // typs().positive & typs().negative()
