@@ -6,8 +6,8 @@
 
 var Promise = require('bluebird');
 
-// almost bullet-proof compare function
-var deepCompare = require('./deepCompare.js');
+var deepEqual = require('deep-equal');
+var deepCompare = (a, b) => deepEqual(a, b, { strict: true });
 
 // interface, masks the immutability
 var typs = function (/* variadic arguments */) {

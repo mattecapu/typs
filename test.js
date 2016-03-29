@@ -1,12 +1,11 @@
 /*!
 	Naive test suite
-	TODO: update to Jasmine
 */
 
 var assert = require('assert');
 var Promise = require('bluebird');
 
-var typs = require('./typs.js');
+var typs = require('./index.js');
 
 var nan = parseFloat(''),
 	infinity = 1/0;
