@@ -67,7 +67,7 @@ assert(false === typs(42).def().map((x) => x).undef().check());
 // typs().andEach()
 assert(true === typs().andEach().check());
 assert(true === typs().undef().andEachProp().undef().check());
-assert(true === typs(42).andEach().notNull().check());
+assert(true === typs(42).andEach().notNil().check());
 assert(true === typs([1, 2, 3], [4, 5, 6]).array().andEach().integer().positive().check());
 assert(true === typs([1, 2, 3], [4, 5, 6]).andEach().integer().positive().check());
 assert(true === typs([1, 2, 3], {'0': 1, '1': 2, length: 2}).andEach().integer().positive().check());
@@ -79,7 +79,7 @@ assert(false === typs([1, 2, 3], {}).andEach().integer().negative().check());
 // typs().andEachProp()
 assert(true === typs().andEachProp().check());
 assert(true === typs().undef().andEachProp().undef().check());
-assert(true === typs(42).andEachProp().notNull().check());
+assert(true === typs(42).andEachProp().notNil().check());
 assert(true === typs({a: 2, b: 7, c: 17}).object().andEachProp().integer().positive().check());
 assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachProp().integer().positive().check());
 
@@ -154,19 +154,19 @@ assert(true === typs(42).not(typs().string()).check());
 assert(true === typs('abc').not(typs().integer()).check());
 
 
-// typs().Null() && notNull()
-assert(true === typs().Null().check());
-assert(true === typs(undefined).Null().check());
-assert(true === typs(null).Null().check());
-assert(true === typs(nan).Null().check());
+// typs().nil() && notNil()
+assert(true === typs().nil().check());
+assert(true === typs(undefined).nil().check());
+assert(true === typs(null).nil().check());
+assert(true === typs(nan).nil().check());
 
-assert(false === typs([]).Null().check());
-assert(false === typs({}).Null().check());
-assert(false === typs(() => {}).Null().check());
-assert(false === typs('').Null().check());
-assert(false === typs(0).Null().check());
-assert(false === typs(false).Null().check());
-assert(false === typs(Infinity).Null().check());
+assert(false === typs([]).nil().check());
+assert(false === typs({}).nil().check());
+assert(false === typs(() => {}).nil().check());
+assert(false === typs('').nil().check());
+assert(false === typs(0).nil().check());
+assert(false === typs(false).nil().check());
+assert(false === typs(Infinity).nil().check());
 
 
 // typs().undef() && def()

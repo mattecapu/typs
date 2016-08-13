@@ -103,14 +103,14 @@ class Typs {
 	// switch the validation to properties
 	andEachProp () {
 		return this.map((obj) => {
-			if (typs(obj).object().notNull().doesntCheck()) return [obj];
+			if (typs(obj).object().notNil().doesntCheck()) return [obj];
 			return Object.keys(obj).map((k) => obj[k]);
 		}).andEach();
 	}
 	// switch the validation to keys
 	andEachKey () {
 		return this.map((obj) => {
-			if (typs(obj).object().notNull().doesntCheck() && typs(obj).array().doesntCheck()) {
+			if (typs(obj).object().notNil().doesntCheck() && typs(obj).array().doesntCheck()) {
 				throw new Error('typs().andEachKey() can\'t read keys of a non-object');
 			}
 			return Object.keys(obj);
@@ -119,7 +119,7 @@ class Typs {
 	// switch the validation to an array of key/values objects
 	andEachEntry () {
 		return this.map((obj) => {
-			if (typs(obj).object().notNull().doesntCheck() && typs(obj).array().doesntCheck()) {
+			if (typs(obj).object().notNil().doesntCheck() && typs(obj).array().doesntCheck()) {
 				throw new Error('typs().andEachEntry() can\'t read entries from a non-object');
 			}
 			return Object.keys(obj).map((key) => {
@@ -137,13 +137,13 @@ class Typs {
 	}
 
 	// checks if obj is null, undefined or NaN
-	Null () {
+	nil () {
 		return this.add((obj) => {
 			return obj === null || obj === void 0 || obj !== obj;
 		});
 	}
-	notNull () {
-		return this.not(typs().Null());
+	notNil () {
+		return this.not(typs().nil());
 	}
 
 	// checks if obj is undefined
@@ -275,7 +275,7 @@ class Typs {
 
 	// checks if obj.length respects the given constraints (good for any array-like object)
 	len ({min, max, exact}) {
-		const param_type = typs().notNull().integer().positive();
+		const param_type = typs().notNil().integer().positive();
 
 		if (typs(min).isnt(param_type) && typs(max).isnt(param_type) && typs(exact).isnt(param_type)) {
 			throw new Error('typs().len() expects at least one parameter to be a positive integer');
@@ -345,7 +345,7 @@ class Typs {
 
 	// returns true if accessing obj[<key>] doesn't raise an exception
 	keyable () {
-		return this.notNull().matchesAny([
+		return this.notNil().matchesAny([
 			typs().object(),
 			typs().array(),
 			typs().string()
