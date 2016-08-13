@@ -15,7 +15,7 @@ const SIGNUM_REGEX = /^-/;
 // factory interface to mask the immutability
 const typs = (...args) => new Typs(args, []);
 
-const wrap_and_add = (function (constraint, transformer = (x) => x) {
+function wrap_and_add (constraint, transformer = (x) => x) {
 	const wrapped_constraint = (objs, constraints) => {
 
 		objs = transformer(objs);
@@ -48,7 +48,7 @@ const wrap_and_add = (function (constraint, transformer = (x) => x) {
 	// return a new object that validates with all the
 	// previous constraints plus thew new one
 	return new Typs(this.args, this.constraints.concat(wrapped_constraint));
-});
+};
 
 // a class which represent a type signature
 class Typs {
