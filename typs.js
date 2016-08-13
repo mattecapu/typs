@@ -80,6 +80,18 @@ class Typs {
 		return !this.check();
 	}
 
+	// throws error if obj doesn't check
+	checkOrThrow (error) {
+		if (this.doesntCheck()) {
+			throw error;
+		}
+	}
+	doesntCheckOrThrow (error) {
+		if (this.check()) {
+			throw error;
+		}
+	}
+
 	// maps the arguments
 	map (mapper) {
 		if (typs(mapper).func().doesntCheck()) {

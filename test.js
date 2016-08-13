@@ -36,6 +36,34 @@ typs('should fail').satisfies(function (obj) {
 });
 
 
+// typs().checkOrThrow()
+try {
+	typs(5).number().checkOrThrow(new Error("error"));
+	assert(true);
+} catch (error) {
+	assert(false);
+}
+try {
+	typs('string').number().checkOrThrow(new Error("error"));
+	assert(false);
+} catch (error) {
+	assert(true);
+}
+
+// typs().doesntCheckOrThrow()
+try {
+	typs(5).number().doesntCheckOrThrow(new Error("error"));
+	assert(false);
+} catch (error) {
+	assert(true);
+}
+try {
+	typs('string').number().doesntCheckOrThrow(new Error("error"));
+	assert(true);
+} catch (error) {
+	assert(false);
+}
+
 
 // typs().eachMatches
 assert(true === typs([1, 2, 3]).eachMatches(typs().integer().positive()).check());
