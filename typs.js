@@ -92,6 +92,16 @@ class Typs {
 		}
 	}
 
+	// get a function to validate using the current type
+	getChecker () {
+		return (obj) => this.checkOn(obj);
+	}
+
+	// get a function to assert the current type
+	getAssertion (error) {
+		return (obj) => typs(obj).matches(this).checkOrThrow(error);
+	}
+
 	// maps the arguments
 	map (mapper) {
 		if (typs(mapper).func().doesntCheck()) {

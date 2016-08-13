@@ -64,6 +64,30 @@ try {
 	assert(false);
 }
 
+// typs().getChecker()
+{
+	const checker = typs().number().getChecker();
+	assert(true === checker(5));
+	assert(false === checker('five'));
+}
+
+// typs().getAssertion()
+{
+	const test_error = new Error('test');
+	const checker = typs().number().getAssertion(test_error);
+	try {
+		checker(5);
+		assert(true);
+	} catch (error) {
+		assert(false);
+	}
+	try {
+		checker('five');
+		assert(false);
+	} catch (error) {
+		assert(error.message === test_error.message);
+	}
+}
 
 // typs().eachMatches
 assert(true === typs([1, 2, 3]).eachMatches(typs().integer().positive()).check());
