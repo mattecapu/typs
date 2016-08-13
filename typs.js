@@ -10,8 +10,6 @@ import deepEqual from 'deep-equal';
 const deepCompare = (a, b) => deepEqual(a, b, { strict: true });
 const asArray = (obj) => [].slice.call(obj);
 
-const SIGNUM_REGEX = /^-/;
-
 // factory interface to mask the immutability
 const typs = (...args) => new Typs(args, []);
 
@@ -196,18 +194,20 @@ class Typs {
 	// numbers
 	number () {
 		return this.add((obj) => {
-			return (typs(obj).string().check()
-					|| typeof obj === 'number' || obj instanceof Number)
-					&& !isNaN(parseFloat(obj))
-					&& (isFinite(obj.toString().replace(SIGNUM_REGEX, '')) || obj * obj === Infinity)
+			return (typeof obj === 'number' || obj instanceof Number) && !isNaN(obj);
+		});
+	}
+	// number-coercible value
+	numeric () {
+		return this.add((obj) => {
+			return typs(obj).number().check()
+				|| (typs(parseFloat(obj)).number().check() && typs(obj).string().check());
 		});
 	}
 
 	// checks for finiteness
 	finite () {
-		return this.add((obj) => {
-			return typs(obj).number().check() && isFinite(obj.toString().replace(SIGNUM_REGEX, ''));
-		});
+		return this.number().add(isFinite);
 	}
 	// checks for infiniteness
 	infinite () {
@@ -216,27 +216,36 @@ class Typs {
 
 	// checks if obj is an integer
 	integer () {
-		return this.add((obj) => {
-			return typs(obj).number().check() && parseInt(obj) === parseFloat(obj)
+		return this.number().add((obj) => {
+			return parseInt(obj) === obj
 		});
 	}
 
 	// checks if obj is positive or negative
 	positive () {
-		return this.add((obj) => {
-			return typs(obj).number().check() && parseFloat(obj) >= 0;
-		});
+		return this.number().matchesAny([
+			typs().equals(0),
+			typs().greater(0)
+		])
 	}
 	negative () {
-		return this.add((obj) => {
-			return typs(obj).number().check() && parseFloat(obj) < 0;
-		});
+		return this.number().lesser(0);
 	}
 
+	// checks if obj is 0
+	zero () {
+		return this.equals(0);
+	}
 	// checks if obj is different from 0
 	notZero () {
-		return this.add((obj) => {
-			return typs(obj).number().check() && parseFloat(obj) !== 0;
+		return this.notEquals(0);
+	}
+
+	// checks if obj is almost 0
+	almostZero (eps = Number.EPSILON) {
+		return this.number().between({
+			min: -eps, max: eps,
+			includeStart: true, includeEnd: true
 		});
 	}
 
@@ -245,8 +254,8 @@ class Typs {
 		if (typs(num).number().doesntCheck()) {
 			throw new Error('typs().greater() expects a number as its first parameter');
 		}
-		return this.add((obj) => {
-			return typs(obj).number().check() && parseFloat(obj) > parseFloat(num);
+		return this.number().add((obj) => {
+			return parseFloat(obj) > parseFloat(num);
 		});
 	}
 
@@ -255,9 +264,7 @@ class Typs {
 		if (typs(num).number().doesntCheck()) {
 			throw new Error('typs().greater() expects a number as its first parameter');
 		}
-		return this.add((obj) => {
-			return typs(obj).number().check() && parseFloat(obj) < parseFloat(num);
-		});
+		return this.number().not(typs().greater(num)).notEquals(num);
 	}
 
 	// checks if obj is between min and max, using includeStart and includeEnd to specify if include the bounds
@@ -324,9 +331,8 @@ class Typs {
 
 		if (min > max) throw new Error('typs().len() expects ordered bounds');
 
-		return this.add((obj) => {
-			return typs(obj).hasLength().check()
-					&& (typs(min).is(param_type) ? obj.length >= min : true)
+		return this.hasLength().add((obj) => {
+			return (typs(min).is(param_type) ? obj.length >= min : true)
 					&& (typs(max).is(param_type) ? obj.length <= max : true)
 					&& (typs(exact).is(param_type) ? obj.length === exact : true)
 		});
@@ -334,9 +340,7 @@ class Typs {
 
 	// checks array-like objects for emptiness
 	empty () {
-		return this.add((obj) => {
-			return typs(obj).len({exact: 0}).check();
-		});
+		return this.len({exact: 0});
 	}
 	notEmpty () {
 		return this.not(typs().empty());
@@ -355,8 +359,8 @@ class Typs {
 		if (!typs(regex).instanceOf(RegExp)) {
 			throw new Error('typs().regex() expects a RegExp object as its first parameter');
 		}
-		return this.add((obj) => {
-			return typs(obj).string().check() && regex.test(obj);
+		return this.string().add((obj) => {
+			return regex.test(obj);
 		});
 	}
 
@@ -367,16 +371,15 @@ class Typs {
 
 	// checks if a collection has any duplicate entries
 	unique () {
-		return this.add((obj) => {
-			if (typs(obj).hasLength().doesntCheck()) return false;
+		return this.hasLength().add((obj) => {
 			return asArray(obj).every((e, i, arr) => i === arr.indexOf(e));
 		});
 	}
 
 	// objects
 	object () {
-		return this.add((obj) => {
-			return typs(obj).array().doesntCheck() && typeof obj === 'object';
+		return this.not(typs().array()).add((obj) => {
+			return typeof obj === 'object';
 		});
 	}
 
@@ -394,8 +397,7 @@ class Typs {
 		if (typs(keys).array().doesntCheck()) {
 			throw new Error('typs().hasKeys() expects an array as its first parameter');
 		}
-		return this.add((obj) => {
-			if (typs(obj).keyable().doesntCheck()) return false;
+		return this.keyable().add((obj) => {
 			return keys.every((key) => key in obj);
 		});
 	}

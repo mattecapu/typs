@@ -143,8 +143,8 @@ assert(false === typs([1, 2, 3], {}).andEachProp().integer().negative().check())
 // typs().andEachKey()
 assert(true === typs({a: 2, b: 7, c: 17}).object().andEachKey().string().notEmpty().check());
 assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachKey().string().notEmpty().check());
-assert(true === typs([-1, -2, -3]).andEachKey().integer().positive().check());
-assert(true === typs([-1, -2, -3], {}).andEachKey().integer().positive().check());
+assert(true === typs([-1, -2, -3]).andEachKey().map((k) => +k).integer().positive().check());
+assert(true === typs([-1, -2, -3], {}).andEachKey().map((k) => +k).integer().positive().check());
 
 assert(false === typs({a: 2, b: 7, c: 17}).andEachKey().integer().positive().check());
 assert(false === typs({a: 2, b: 7, c: 17}).string().andEachKey().integer().positive().check());
@@ -174,7 +174,7 @@ assert(true === typs([-1, -2, -3], {}).andEachEntry().object().check());
 assert(true === typs([-1, -2, -3], {}).andEachEntry().object().hasKeys(['key', 'value']).check());
 assert(true === typs({a: 2, b: 7, c: 17}).andEachEntry().matches({key: typs().oneOf(['a','b','c']), value: typs().integer()}).check());
 assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachEntry().matches({key: typs().oneOf(['a','b','c']), value: typs().integer()}).check());
-assert(true === typs([-1, -2, -3]).andEachEntry().map((x) => x.key).integer().positive().check());
+assert(true === typs([-1, -2, -3]).andEachEntry().map((x) => +x.key).integer().positive().check());
 assert(true === typs([-1, -2, -3]).andEachEntry().map((x) => x.value).integer().negative().check());
 
 assert(false === typs({a: 2, b: 7, c: 17}).andEachEntry().integer().positive().check());
@@ -238,15 +238,23 @@ assert(false === typs(Infinity).undef().check());
 // typs().number()
 assert(true === typs(42).number().check());
 assert(true === typs(2.7182182).number().check());
-assert(true === typs('42').number().check());
 assert(true === typs(0xff).number().check());
 
 assert(false === typs().number().check());
 assert(false === typs('').number().check());
+assert(false === typs('42').number().check());
 assert(false === typs('42a').number().check());
 assert(false === typs('fortytwo').number().check());
 assert(false === typs([42]).number().check());
 assert(false === typs(nan).number().check());
+
+// typs().numeric()
+assert(true === typs('42').numeric().check());
+assert(true === typs(42).numeric().check());
+assert(true === typs('42a').numeric().check());
+
+assert(false === typs([42]).numeric().check());
+assert(false === typs(nan).numeric().check());
 
 
 // typs().finite() && infinite()
@@ -268,6 +276,7 @@ assert(false === typs(2.7182182).integer().check());
 
 // typs().positive()
 assert(true === typs(42).positive().check());
+assert(true === typs(Infinity).positive().check());
 assert(true === typs(0).positive().check());
 
 assert(false === typs(-42).positive().check());
@@ -296,10 +305,20 @@ assert(true === typs(0.577).notZero().check());
 assert(false === typs(0).notZero().check());
 
 
+// typs().almostZero()
+assert(true === typs(0).almostZero().check());
+assert(true === typs(0).almostZero(5).check());
+assert(true === typs(3).almostZero(5).check());
+assert(true === typs(0).almostZero(0).check());
+
+assert(false === typs(1).almostZero().check());
+assert(false === typs(1).almostZero(.5).check());
+assert(false === typs(Number.EPSILON).almostZero(0).check());
+
+
 // typs().greater()
 assert(true === typs(42).greater(40).check());
 assert(true === typs(42).greater(-42).check());
-assert(true === typs(42).greater('41').check());
 
 assert(false === typs(42).greater(43).check());
 assert(false === typs(-42).greater(42).check());
@@ -312,24 +331,22 @@ try {
 } catch(errors) {
 	assert(true);
 }
+try {
+	typs(42).greater('sdfs');
+	assert(false);
+} catch(errors) {
+	assert(true);
+}
 
 
 // typs().lesser()
 assert(true === typs(40).lesser(42).check());
 assert(true === typs(-42).lesser(42).check());
-assert(true === typs(42).lesser('43').check());
 
 assert(false === typs(43).lesser(42).check());
 assert(false === typs(42).lesser(-42).check());
 assert(false === typs(42).lesser(42).check());
 assert(false === typs('str').lesser(42).check());
-
-try {
-	typs(42).lesser();
-	assert(false);
-} catch(errors) {
-	assert(true);
-}
 
 
 // typs().between()
