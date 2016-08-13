@@ -26,14 +26,14 @@ typs('shouldn\'t fail').satisfies(function (obj) {
 	assert(true === res);
 }).catch((error) => {
 	assert(false);
-}).done();
+});
 typs('should fail').satisfies(function (obj) {
-	return Promise.reject(obj);
+	return Promise.reject(new Error(obj));
 }).check().then((res) => {
 	assert(false);
 }).catch((error) => {
-	assert('should fail' === error);
-}).done();
+	assert('should fail' === error.message);
+});
 
 
 
