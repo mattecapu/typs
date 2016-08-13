@@ -25,7 +25,7 @@ function wrap_and_add (constraint, transformer = (x) => x) {
 
 		let promises = [];
 
-		if (!objs.every((o) => {
+		const sync_result = objs.every((o) => {
 			const result = constraint(o);
 			if (result instanceof Promise) {
 				promises.push(result);
@@ -33,16 +33,31 @@ function wrap_and_add (constraint, transformer = (x) => x) {
 			} else {
 				return result;
 			}
-		})) return false;
-
-		if (!promises.length) return next();
-
-		return Promise.all(promises).then((results) => {
-			if (results.some((x) => !x)) return false;
-			return next();
-		}).catch((error) => {
-			throw error;
 		});
+		const hasPromises = !!promises.length;
+
+		if (sync_result) {
+			if (hasPromises) {
+				// wait for all promises to resolve
+				return Promise.all(promises).then((results) => {
+					if (results.some((x) => !x)) {
+						return false;
+					}
+					return next();
+				}).catch((error) => {
+					throw error;
+				});
+			} else {
+				return next();
+			}
+		} else {
+			if (hasPromises) {
+				// caller is expecting a promise, so return one
+				return Promise.return(false);
+			} else {
+				return false;
+			}
+		}
 	};
 
 	// return a new object that validates with all the
