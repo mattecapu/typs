@@ -5,7 +5,7 @@
 import assert from 'assert';
 import Promise from 'bluebird';
 
-import typs from './';
+import typs from './typs';
 
 const nan = parseFloat('');
 
