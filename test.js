@@ -117,33 +117,33 @@ try {
 	assert(true);
 }
 
-// typs().andEachMapEntry()
-assert(true === typs([-1, -2, -3], {}).andEachMapEntry().object().check());
-assert(true === typs([-1, -2, -3], {}).andEachMapEntry().object().hasKeys(['key', 'value']).check());
-assert(true === typs({a: 2, b: 7, c: 17}).andEachMapEntry().matches({key: typs().oneOf(['a','b','c']), value: typs().integer()}).check());
-assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachMapEntry().matches({key: typs().oneOf(['a','b','c']), value: typs().integer()}).check());
-assert(true === typs([-1, -2, -3]).andEachMapEntry().map((x) => x.key).integer().positive().check());
-assert(true === typs([-1, -2, -3]).andEachMapEntry().map((x) => x.value).integer().negative().check());
+// typs().andEachEntry()
+assert(true === typs([-1, -2, -3], {}).andEachEntry().object().check());
+assert(true === typs([-1, -2, -3], {}).andEachEntry().object().hasKeys(['key', 'value']).check());
+assert(true === typs({a: 2, b: 7, c: 17}).andEachEntry().matches({key: typs().oneOf(['a','b','c']), value: typs().integer()}).check());
+assert(true === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachEntry().matches({key: typs().oneOf(['a','b','c']), value: typs().integer()}).check());
+assert(true === typs([-1, -2, -3]).andEachEntry().map((x) => x.key).integer().positive().check());
+assert(true === typs([-1, -2, -3]).andEachEntry().map((x) => x.value).integer().negative().check());
 
-assert(false === typs({a: 2, b: 7, c: 17}).andEachMapEntry().integer().positive().check());
-assert(false === typs({a: 2, b: 7, c: 17}).andEachMapEntry().string().check());
-assert(false === typs({a: 2, b: 7, c: 17}).string().andEachMapEntry().object().check());
-assert(false === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachMapEntry().string().len({min: 2}).check());
+assert(false === typs({a: 2, b: 7, c: 17}).andEachEntry().integer().positive().check());
+assert(false === typs({a: 2, b: 7, c: 17}).andEachEntry().string().check());
+assert(false === typs({a: 2, b: 7, c: 17}).string().andEachEntry().object().check());
+assert(false === typs({a: 2, b: 7, c: 17}, {a: 32, b: 52, c: 77}).andEachEntry().string().len({min: 2}).check());
 
 try {
-	typs().andEachMapEntry().check();
+	typs().andEachEntry().check();
 	assert(false);
 } catch(errors) {
 	assert(true);
 }
 try {
-	typs(42).andEachMapEntry().check();
+	typs(42).andEachEntry().check();
 	assert(false);
 } catch(errors) {
 	assert(true);
 }
 try {
-	typs('hello').andEachMapEntry().check();
+	typs('hello').andEachEntry().check();
 	assert(false);
 } catch(errors) {
 	assert(true);

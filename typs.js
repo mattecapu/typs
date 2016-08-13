@@ -117,10 +117,10 @@ class Typs {
 		}).andEach();
 	}
 	// switch the validation to an array of key/values objects
-	andEachMapEntry () {
+	andEachEntry () {
 		return this.map((obj) => {
 			if (typs(obj).object().notNull().doesntCheck() && typs(obj).array().doesntCheck()) {
-				throw new Error('typs().andEachMapEntry() can\'t read entries from a non-object');
+				throw new Error('typs().andEachEntry() can\'t read entries from a non-object');
 			}
 			return Object.keys(obj).map((key) => {
 				return {key, value: obj[key]};
