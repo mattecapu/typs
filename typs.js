@@ -95,13 +95,6 @@ class Typs {
 		return !this.check();
 	}
 
-	validate (message) {
-		return this.check() || message;
-	}
-	validateOn (obj, message) {
-		return this.checkOn(obj) || message;
-	}
-
 	// throws error if obj doesn't check
 	checkOrThrow (error) {
 		if (this.doesntCheck()) {
@@ -122,11 +115,6 @@ class Typs {
 	// get a function to assert the current type
 	getAssertion (error) {
 		return (obj) => typs(obj).matches(this).checkOrThrow(error);
-	}
-
-	// get a validation function
-	getValidation(message) {
-		return (obj) => this.validateOn(obj, message);
 	}
 
 	// maps the arguments

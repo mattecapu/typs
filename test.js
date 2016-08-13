@@ -89,14 +89,6 @@ try {
 	}
 }
 
-// typs().getValidation()
-{
-	const message = 'this is not a number';
-	const validation = typs().number().getValidation(message);
-	assert(true === validation(5));
-	assert(message === validation('five'))
-}
-
 // typs().eachMatches
 assert(true === typs([1, 2, 3]).eachMatches(typs().integer().positive()).check());
 assert(true === typs('ciao').eachMatches(typs().len({max: 1})).check());
