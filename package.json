@@ -1,6 +1,6 @@
 {
   "name": "typs",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "An handy library for type validation in Javascript",
   "author": "Matteo Capucci <mattecapu@live.it>",
   "main": "index.js",
