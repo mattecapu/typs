@@ -419,12 +419,12 @@ class Typs {
 		return this.add((obj) => {
 			if (typs(obj).keyable().doesntCheck()) return false;
 			return Object.keys(type).every((key) => {
-				if (typs(type[key]).object().check()) {
-					// nested objects
-					return typs(obj[key]).is(type[key]);
-				} else {
+				if (type[key] instanceof Typs) {
 					// simple type checks
 					return type[key].checkOn(obj[key]);
+				} else {
+					// nested objects
+					return typs(obj[key]).is(type[key]);
 				}
 			});
 		});

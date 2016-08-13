@@ -640,6 +640,15 @@ assert(false === typs().func().check());
 assert(false === typs(new Object()).func().check());
 assert(false === typs('function').func().check());
 
+// typs().matches() && is() && isnt() && affines
+{
+	const type = { a: { b: typs().number() }, c: typs().string() };
+	assert(true === typs({}).isnt(type));
+	assert(true === typs({a: 3, c: 5}).isnt(type));
+	assert(true === typs({a: {b:5}, c: 5}).isnt(type));
+	assert(true === typs({a: {b:5}, c: 'five'}).is(type));
+}
+
 
 
 console.log('so far, so good')
