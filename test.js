@@ -3,7 +3,6 @@
 */
 
 import assert from 'assert';
-import Promise from 'bluebird';
 
 import typs from './typs';
 
@@ -21,14 +20,14 @@ assert(false === typs().isnt(typs()));
 
 // promises support check
 typs('shouldn\'t fail').satisfies(function (obj) {
-	return Promise.resolve(true);
+	return new Promise((res) => res(true));
 }).check().then((res) => {
 	assert(true === res);
 }).catch((error) => {
 	assert(false);
 });
 typs('should fail').satisfies(function (obj) {
-	return Promise.reject(new Error(obj));
+	return new Promise((_, rej) => rej(new Error(obj)));
 }).check().then((res) => {
 	assert(false);
 }).catch((error) => {

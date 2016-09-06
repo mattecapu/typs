@@ -4,7 +4,6 @@
 	Nerd it on GitHub: https://github.com/mattecapu/types.js
 */
 
-import Promise from 'bluebird';
 import deepEqual from 'deep-equal';
 
 const deepCompare = (a, b) => deepEqual(a, b, { strict: true });
@@ -51,7 +50,7 @@ function wrap_and_add (constraint, transformer = (x) => x) {
 		} else {
 			if (hasPromises) {
 				// caller is expecting a promise, so return one
-				return Promise.return(false);
+				return new Promise((res) => res(false));
 			} else {
 				return false;
 			}

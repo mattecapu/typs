@@ -4,6 +4,9 @@
   "description": "An handy library for type validation in Javascript",
   "author": "Matteo Capucci <mattecapu@live.it>",
   "main": "index.js",
+  "engines": {
+    "node": ">=0.12.15"
+  },
   "scripts": {
     "test": "babel-node test.js",
     "watch": "chokidar typs.js test.js -c 'npm test'",
@@ -19,7 +22,6 @@
     "chokidar-cli": "1.2.0"
   },
   "dependencies": {
-    "bluebird": "3.4.1",
     "deep-equal": "1.0.1"
   },
   "homepage": "https://github.com/mattecapu/typs",
