@@ -4,6 +4,7 @@
   "description": "An handy library for type validation in Javascript",
   "author": "Matteo Capucci <mattecapu@live.it>",
   "main": "index.js",
+  "jsnext:main": "typs.js",
   "engines": {
     "node": ">=0.12.15"
   },
